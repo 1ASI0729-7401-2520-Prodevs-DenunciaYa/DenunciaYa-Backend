@@ -1,7 +1,6 @@
 package com.denunciayabackend.community.domain.services;
 
 import com.denunciayabackend.community.domain.model.aggregates.Post;
-import com.denunciayabackend.community.domain.model.commands.CreateCommentCommand;
 import com.denunciayabackend.community.domain.model.commands.CreatePostCommand;
 import com.denunciayabackend.community.domain.model.commands.DeletePostCommand;
 import com.denunciayabackend.community.domain.model.commands.LikePostCommand;
@@ -12,5 +11,4 @@ public interface PostCommandService {
     Long handle(CreatePostCommand command);
     void handle(DeletePostCommand command);
     Optional<Post> handle(LikePostCommand command);
-    Optional<Post> handle(CreateCommentCommand command);
 }

@@ -84,7 +84,9 @@ public class Post extends AuditableAbstractAggregateRoot<Post> {
     public void like() {
         this.likes++;
     }
-
+    public void incrementLikes() {
+        this.likes++;
+    }
     public void unlike() {
         if (this.likes > 0) this.likes--;
     }
