@@ -13,31 +13,61 @@ import java.util.Set;
 @Getter
 public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "responsibleId", column = @Column(name = "responsible_id"))
+            @AttributeOverride(name = "value", column = @Column(name = "responsible_id"))
     })
-    private ResponsibleId id;
+    private ResponsibleId responsibleId;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "full_name"))
+    })
     private FullName fullName;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "email"))
+    })
     private Email email;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "phone_number"))
+    })
     private PhoneNumber phoneNumber;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "position"))
+    })
     private Position position;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "department"))
+    })
     private Department department;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "role"))
+    })
     private Role role;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "description"))
+    })
+    private Description description;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "access_level"))
+    })
     private AccessLevel accessLevel;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -45,8 +75,7 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
             joinColumns = @JoinColumn(name = "responsible_id"))
     private Set<ComplaintId> assignedComplaints = new HashSet<>();
 
-
-    protected Responsible() { } // JPA requirement
+    protected Responsible() { }
 
     public Responsible(
             ResponsibleId id,
@@ -56,15 +85,17 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
             Position position,
             Department department,
             Role role,
+            Description description,
             AccessLevel accessLevel
     ) {
-        this.id = requireNonNull(id, "ResponsibleId");
+        this.responsibleId = requireNonNull(id, "ResponsibleId");
         this.fullName = requireNonNull(fullName, "FullName");
         this.email = requireNonNull(email, "Email");
         this.phoneNumber = requireNonNull(phoneNumber, "PhoneNumber");
         this.position = requireNonNull(position, "Position");
         this.department = requireNonNull(department, "Department");
         this.role = requireNonNull(role, "Role");
+        this.description = requireNonNull(description, "Description");
         this.accessLevel = requireNonNull(accessLevel, "AccessLevel");
     }
 
@@ -73,9 +104,6 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
             throw new IllegalArgumentException(fieldName + " cannot be null.");
         return value;
     }
-
-
-
 
     public void assignComplaint(ComplaintId complaintId) {
         if (complaintId == null)
@@ -90,5 +118,11 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
 
     public Set<ComplaintId> getAssignedComplaints() {
         return Collections.unmodifiableSet(assignedComplaints);
+    }
+
+    public void updateProfile(FullName fullName, Email email, PhoneNumber phoneNumber) {
+        this.fullName = requireNonNull(fullName, "FullName");
+        this.email = requireNonNull(email, "Email");
+        this.phoneNumber = requireNonNull(phoneNumber, "PhoneNumber");
     }
 }
