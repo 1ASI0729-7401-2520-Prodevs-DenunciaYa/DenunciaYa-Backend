@@ -20,6 +20,20 @@ import java.util.Date;
 public class AuditableAbstractAggregateRoot<T extends AbstractAggregateRoot<T>>
 extends AbstractAggregateRoot<T> {
 
+    @PrePersist
+    protected void onCreate() {
+        Date now = new Date();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = new Date();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
