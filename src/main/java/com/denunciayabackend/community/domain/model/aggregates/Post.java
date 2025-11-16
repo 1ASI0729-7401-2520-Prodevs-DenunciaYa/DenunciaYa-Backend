@@ -30,9 +30,9 @@ public class Post extends AuditableAbstractAggregateRoot<Post> {
     @Column(nullable = false)
     private String author;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(length = 5000, nullable = false)
     private String content;
+
 
     @Lob
     @Column

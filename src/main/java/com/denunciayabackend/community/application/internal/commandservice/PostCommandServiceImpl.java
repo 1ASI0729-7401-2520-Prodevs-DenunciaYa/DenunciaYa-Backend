@@ -21,7 +21,6 @@ public class PostCommandServiceImpl implements PostCommandService {
 
     @Override
     public Long handle(CreatePostCommand command) {
-        // Validar existencia o restricciones
         var post = new Post(command);
         try {
             postRepository.save(post);
