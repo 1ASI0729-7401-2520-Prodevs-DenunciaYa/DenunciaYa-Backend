@@ -1,10 +1,13 @@
 # Step 1: Build the application
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 ENV SPRING_PROFILES_ACTIVE=prod
+# Set the working directory inside the container
 WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
+# Copy the Maven project files into the container
 COPY src ./src
+# Build the application
 RUN mvn package -DskipTests
 
 # Step 2: Runtime image
