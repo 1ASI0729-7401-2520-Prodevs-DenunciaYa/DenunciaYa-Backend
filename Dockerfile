@@ -1,4 +1,4 @@
-# Step 1: Build the application using Maven and Java 21
+# Step 1: Build the application
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 ENV SPRING_PROFILES_ACTIVE=prod
 WORKDIR /app
@@ -7,7 +7,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn package -DskipTests
 
-# Step 2: Create a runtime image using JRE 21
+# Step 2: Runtime image
 FROM eclipse-temurin:21-jre AS runtime
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
