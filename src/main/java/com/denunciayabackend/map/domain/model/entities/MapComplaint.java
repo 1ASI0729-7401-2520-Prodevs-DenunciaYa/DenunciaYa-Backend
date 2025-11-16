@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "complaints")
-public class Complaint {
+@Entity(name = "MapComplaint")
+@Table(name = "map_complaints")
+public class MapComplaint {
 
     @Id
     private String id;

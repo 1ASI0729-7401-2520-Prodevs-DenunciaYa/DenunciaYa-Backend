@@ -1,6 +1,6 @@
 package com.denunciayabackend.map.application.internal.queryservices;
 
-import com.denunciayabackend.map.domain.model.entities.Complaint;
+import com.denunciayabackend.map.domain.model.entities.MapComplaint;
 import com.denunciayabackend.map.domain.model.queries.GetComplaintsForMapQuery;
 import com.denunciayabackend.map.domain.services.IMapQueryService;
 import com.denunciayabackend.map.infrastructure.persistence.jpa.repositories.IReadOnlyComplaintRepository;
@@ -24,7 +24,7 @@ public class MapQueryServiceImpl implements IMapQueryService {
     @Transactional(readOnly = true)
     public List<ComplaintMapResource> handle(GetComplaintsForMapQuery query) {
 
-        List<Complaint> complaints = complaintRepository.findFilteredComplaints(
+        List<MapComplaint> complaints = complaintRepository.findFilteredComplaints(
                 query.category(),
                 query.district(),
                 query.status()
@@ -35,7 +35,7 @@ public class MapQueryServiceImpl implements IMapQueryService {
                 .collect(Collectors.toList());
     }
 
-    private ComplaintMapResource toResource(Complaint complaint) {
+    private ComplaintMapResource toResource(MapComplaint complaint) {
         return new ComplaintMapResource(
                 complaint.getId(),
                 complaint.getTitle(),

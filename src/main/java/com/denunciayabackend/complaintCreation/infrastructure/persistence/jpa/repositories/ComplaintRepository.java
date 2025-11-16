@@ -19,20 +19,20 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
     // ELIMINADO: findByUserIdValue ya que Complaint no tiene userId
 
-    @Query("SELECT c FROM Complaint c WHERE c.department = :department AND c.city = :city")
+    @Query("SELECT c FROM ComplaintCreation c WHERE c.department = :department AND c.city = :city")
     List<Complaint> findByDepartmentAndCity(@Param("department") String department, @Param("city") String city);
 
-    @Query("SELECT c FROM Complaint c WHERE c.assignedTo LIKE %:assignedTo%")
+    @Query("SELECT c FROM ComplaintCreation c WHERE c.assignedTo LIKE %:assignedTo%")
     List<Complaint> findByAssignedToContaining(@Param("assignedTo") String assignedTo);
 
     boolean existsByComplaintIdValue(String complaintId);
 
-    @Query("SELECT COUNT(c) FROM Complaint c WHERE c.status = :status")
+    @Query("SELECT COUNT(c) FROM ComplaintCreation c WHERE c.status = :status")
     long countByStatus(@Param("status") ComplaintStatus status);
 
-    @Query("SELECT c FROM Complaint c WHERE c.department = :department")
+    @Query("SELECT c FROM ComplaintCreation c WHERE c.department = :department")
     List<Complaint> findByDepartment(@Param("department") String department);
 
-    @Query("SELECT c FROM Complaint c WHERE c.city = :city")
+    @Query("SELECT c FROM ComplaintCreation c WHERE c.city = :city")
     List<Complaint> findByCity(@Param("city") String city);
 }

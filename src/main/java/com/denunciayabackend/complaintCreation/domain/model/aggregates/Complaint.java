@@ -12,8 +12,8 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "complaints")
+@Entity(name = "ComplaintCreation")
+@Table(name = "complaint_creation")
 public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
     @Id
