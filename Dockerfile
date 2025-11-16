@@ -1,40 +1,20 @@
-# Dockerfile for catch-up-platform
-# Summary:
-# This Dockerfile builds and run the catch-up-platform application using Maven and OpenJDK 24.
-# Description:
-# This Dockerfile is designed to build a Spring Boot application using Maven and run it in a lightweight
-# OpenJDK 24 environment. It uses a multi-stage build to keep the final image size small by separating the build
-# and runtime environments. It sets the active Spring profile to 'prod' for production use and exposes port 8080,
-# which is the default port for Spring Boot applications.
-# Version: 1.0
-# Maintainer: Open-source Development Team
-
 # Step 1: Build the application using Maven
-
-# Use a lightweight OpenJDK 24 base image
-FROM maven:3.9.9-eclipse-temurin-24 AS build
-# Set the active profile for the Spring Boot application
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 ENV SPRING_PROFILES_ACTIVE=prod
-# Set the working directory inside the container
 WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
-# Copy the Maven project files into the container
 COPY src ./src
-# Build the application
 RUN mvn package -DskipTests
 
 # Step 2: Create a runtime image
-# Copy the Spring Boot JAR file into the container
-FROM eclipse-temurin:24-jre AS runtime
+FROM eclipse-temurin-21-jre AS runtime
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Step 3: Configure and run the application
-# Expose the port your Spring Boot application listens on (default is 8080)
 EXPOSE 8080
-# Define the command to run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
 
 # Note: The application will run with the 'prod' profile as set in the build stage.
 # This Dockerfile is designed to be used in a CI/CD pipeline or for local development.
