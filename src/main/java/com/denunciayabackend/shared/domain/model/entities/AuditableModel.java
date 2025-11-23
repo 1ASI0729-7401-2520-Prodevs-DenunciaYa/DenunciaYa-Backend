@@ -1,29 +1,20 @@
 package com.denunciayabackend.shared.domain.model.entities;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.util.Date;
-
-@EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
-public class AuditableModel {
+public abstract class AuditableModel {
 
-    @Id
-    @Getter
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME")
+    private LocalDateTime createdAt;
 
-    @CreatedDate
-    @Getter
-    @Column(nullable = false, updatable = false)
-    private Date createdAt;
+    @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME")
+    private LocalDateTime updatedAt;
 
-    @Getter
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Date updatedAt;
+    // getters / setters
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

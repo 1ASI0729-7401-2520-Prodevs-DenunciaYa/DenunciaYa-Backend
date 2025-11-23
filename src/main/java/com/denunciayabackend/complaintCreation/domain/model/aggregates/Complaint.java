@@ -2,6 +2,7 @@ package com.denunciayabackend.complaintCreation.domain.model.aggregates;
 
 import com.denunciayabackend.complaintCreation.domain.model.commands.CreateComplaintCommand;
 import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.entities.ComplaintEvidenceEntity;
 import com.denunciayabackend.complaintCreation.domain.model.entities.TimelineItem;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintId;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
@@ -56,11 +57,16 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     @Column(nullable = false)
     private ComplaintPriority priority = ComplaintPriority.STANDARD;
 
-    @ElementCollection
-    @CollectionTable(name = "complaint_evidence", joinColumns = @JoinColumn(name = "complaint_id"))
-    @Column(name = "evidence_url")
-    private List<String> evidence = new ArrayList<>();
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ComplaintEvidenceEntity> evidence = new ArrayList<>();
 
+    public void addEvidence(List<String> evidenceUrls) {
+        if (evidenceUrls != null) {
+            evidenceUrls.forEach(url ->
+                    this.evidence.add(new ComplaintEvidenceEntity(url, this))
+            );
+        }
+    }
     private String assignedTo;
 
     private String responsibleId;
@@ -114,11 +120,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         addTimelineItem("Assigned to " + assignedTo, "Complaint assigned to responsible authority");
     }
 
-    public void addEvidence(List<String> evidenceUrls) {
-        if (evidenceUrls != null) {
-            this.evidence.addAll(evidenceUrls);
-        }
-    }
+
 
     public void updatePriority(ComplaintPriority priority) {
         this.priority = priority;
@@ -177,8 +179,11 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     }
 
     public List<String> getEvidence() {
-        return this.evidence;
+        return this.evidence.stream()
+                .map(ComplaintEvidenceEntity::getEvidenceUrl)
+                .toList();
     }
+
 
     public String getLocation() {
         return this.location;

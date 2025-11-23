@@ -41,7 +41,14 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         return savedComplaint;
     }
+    @Override
+    public void addEvidence(String complaintId, String evidenceUrl) {
+        Complaint complaint = complaintRepository.findByComplaintIdValue(complaintId)
+                .orElseThrow(() -> new ComplaintNotFoundException(complaintId));
 
+        complaint.addEvidence(Collections.singletonList(evidenceUrl));
+        complaintRepository.save(complaint);
+    }
     @Override
     public Complaint handle(UpdateComplaintCommand command) {
         Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
@@ -109,14 +116,7 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         eventPublisher.publishComplaintDeletedEvent(new ComplaintDeletedEvent(complaint));
     }
 
-    @Override
-    public void addEvidence(String complaintId, String evidenceUrl) {
-        Complaint complaint = complaintRepository.findByComplaintIdValue(complaintId)
-                .orElseThrow(() -> new ComplaintNotFoundException(complaintId));
 
-        complaint.addEvidence(Collections.singletonList(evidenceUrl));
-        complaintRepository.save(complaint);
-    }
 
     @Override
     public void updatePriority(String complaintId, String priority) {
