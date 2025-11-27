@@ -100,11 +100,12 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
-        // Validar que el complaint puede ser eliminado
-        validateComplaintForDeletion(complaint);
+        // ELIMINAR COMPLETAMENTE cualquier validación de estado
+        // Solo log para auditoría
+        System.out.println("Deleting complaint with id: " + command.complaintId() + " and status: " + complaint.getStatus());
 
-        complaint.deleteComplaint();
-        complaintRepository.save(complaint);
+        // Eliminación física del registro
+        complaintRepository.delete(complaint);
 
         eventPublisher.publishComplaintDeletedEvent(new ComplaintDeletedEvent(complaint));
     }
@@ -152,19 +153,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         }
         if (complaint.getStatus() == ComplaintStatus.COMPLETED) {
             throw new InvalidComplaintStatusException("Cannot update a completed complaint");
-        }
-    }
-
-    private void validateComplaintForDeletion(Complaint complaint) {
-        // Permitir eliminar complaints rechazados también
-        if (complaint.getStatus() == ComplaintStatus.COMPLETED) {
-            throw new InvalidComplaintStatusException("Cannot delete a completed complaint");
-        }
-        // Ciudadanos solo pueden eliminar complaints en estado PENDING o UNDER_REVIEW
-        if (!complaint.isCitizenDeletable()) {
-            throw new InvalidComplaintStatusException(
-                    "Only PENDING or UNDER_REVIEW complaints can be deleted by citizens. Current status: " + complaint.getStatus()
-            );
         }
     }
 
