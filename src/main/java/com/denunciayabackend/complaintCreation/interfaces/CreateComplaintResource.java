@@ -4,9 +4,9 @@ import java.util.List;
 
 public record CreateComplaintResource(
         String category,
-        String departmentName,
-        String provinceName,
-        String districtName,
+        String department,
+        String city,
+        String district,
         String location,
         String referenceInfo,
         String description,

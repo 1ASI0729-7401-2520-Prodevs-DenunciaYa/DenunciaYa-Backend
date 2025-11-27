@@ -9,9 +9,9 @@ public class CreateComplaintCommandFromResourceAssembler {
     public CreateComplaintCommand toCommandFromResource(CreateComplaintResource resource) {
         return new CreateComplaintCommand(
                 resource.category(),
-                resource.departmentName(),
-                resource.provinceName(),
-                resource.districtName(),
+                resource.department(),
+                resource.city(),
+                resource.district(),
                 resource.location(),
                 resource.referenceInfo(),
                 resource.description(),

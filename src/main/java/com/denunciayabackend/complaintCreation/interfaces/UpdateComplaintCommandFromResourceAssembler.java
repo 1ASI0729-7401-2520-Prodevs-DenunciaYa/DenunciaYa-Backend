@@ -11,9 +11,9 @@ public class UpdateComplaintCommandFromResourceAssembler {
         return new UpdateComplaintCommand(
                 complaintId,
                 resource.category(),
-                resource.departmentName(),
-                resource.provinceName(),
-                resource.districtName(),
+                resource.department(),
+                resource.city(),
+                resource.district(),
                 resource.location(),
                 resource.referenceInfo(),
                 resource.description(),

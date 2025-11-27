@@ -33,7 +33,7 @@ public class TimelineItem extends AuditableModel {
 
     private boolean waitingDecision;
 
-    @Lob
+    @Column(length = 1000)
     private String updateMessage;
 
     @ManyToOne(fetch = FetchType.LAZY)

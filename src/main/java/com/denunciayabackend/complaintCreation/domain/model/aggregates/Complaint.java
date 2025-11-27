@@ -76,9 +76,9 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     public Complaint(CreateComplaintCommand command) {
         this.complaintId = new ComplaintId(generateComplaintId());
         this.category = command.category();
-        this.department = command.departmentName();
-        this.city = command.provinceName();
-        this.district = command.districtName();
+        this.department = command.department();
+        this.city = command.city();
+        this.district = command.district();
         this.location = command.location();
         this.referenceInfo = command.referenceInfo();
         this.description = command.description();
@@ -90,9 +90,9 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
     public void updateComplaint(UpdateComplaintCommand command) {
         this.category = command.category();
-        this.department = command.departmentName();
-        this.city = command.provinceName();
-        this.district = command.districtName();
+        this.department = command.department();
+        this.city = command.city();
+        this.district = command.district();
         this.location = command.location();
         this.referenceInfo = command.referenceInfo();
         this.description = command.description();

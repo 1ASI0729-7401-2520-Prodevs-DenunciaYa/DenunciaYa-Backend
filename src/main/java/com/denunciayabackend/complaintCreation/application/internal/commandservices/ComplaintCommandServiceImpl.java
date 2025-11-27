@@ -148,7 +148,7 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
     private void validateComplaintForUpdate(Complaint complaint) {
         if (complaint.getStatus() == ComplaintStatus.REJECTED) {
-            throw new InvalidComplaintStatusException("Complaint is already deleted");
+            throw new InvalidComplaintStatusException("Cannot update a rejected complaint");
         }
         if (complaint.getStatus() == ComplaintStatus.COMPLETED) {
             throw new InvalidComplaintStatusException("Cannot update a completed complaint");
@@ -156,8 +156,9 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
     }
 
     private void validateComplaintForDeletion(Complaint complaint) {
-        if (complaint.getStatus() == ComplaintStatus.REJECTED) {
-            throw new InvalidComplaintStatusException("Complaint is already deleted");
+        // Permitir eliminar complaints rechazados también
+        if (complaint.getStatus() == ComplaintStatus.COMPLETED) {
+            throw new InvalidComplaintStatusException("Cannot delete a completed complaint");
         }
         // Ciudadanos solo pueden eliminar complaints en estado PENDING o UNDER_REVIEW
         if (!complaint.isCitizenDeletable()) {

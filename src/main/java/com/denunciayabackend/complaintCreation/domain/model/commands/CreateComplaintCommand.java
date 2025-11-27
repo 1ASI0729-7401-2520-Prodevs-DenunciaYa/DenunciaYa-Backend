@@ -4,9 +4,9 @@ import com.denunciayabackend.complaintCreation.domain.model.valueobjects.Complai
 
 public record CreateComplaintCommand(
         String category,
-        String departmentName,
-        String provinceName,
-        String districtName,
+        String department,
+        String city,
+        String district,
         String location,
         String referenceInfo,
         String description,
