@@ -81,29 +81,42 @@ public class  WebSecurityConfiguration {
                 "/swagger-resources/**",
                 "/webjars/**"
         };
-        // Cross-Origin Resource Sharing configuration
+
+        // --- CORS FIX REAL ---
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
+            cors.setAllowedOrigins(List.of("http://localhost:4200")); // <-- FRONTEND ANGULAR
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
             cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowCredentials(true); // Necesario para JWT
             return cors;
         }));
-        // Cross-Site Request Forgery configuration
+
+        // CSRF
         http.csrf(customizer -> customizer.disable());
-        // Exception handling configuration
-        http.exceptionHandling(configurer -> configurer.authenticationEntryPoint(unauthorizedRequestHandlerEntryPoint));
-        // Session management configuration
-        http.sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        // Authorize requests configuration
-        http.authorizeHttpRequests(configurer -> configurer.requestMatchers(permittedRequestPatterns).permitAll()
-                .anyRequest().permitAll()
+
+        // Exception handling
+        http.exceptionHandling(configurer ->
+                configurer.authenticationEntryPoint(unauthorizedRequestHandlerEntryPoint)
         );
-        // Authentication configuration
+
+        // No sesiones
+        http.sessionManagement(configurer ->
+                configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        // Rutas públicas
+        http.authorizeHttpRequests(configurer ->
+                configurer.requestMatchers(permittedRequestPatterns).permitAll()
+                        .anyRequest().authenticated()
+        );
+
+        // provider
         http.authenticationProvider(authenticationProvider());
-        // Authorization configuration
+
+        // JWT filter
         http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-
 }
