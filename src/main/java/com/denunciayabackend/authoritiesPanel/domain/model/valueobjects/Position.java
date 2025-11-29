@@ -15,7 +15,9 @@ public record Position(String value) {
         if (normalized.length() > 60) {
             throw new IllegalArgumentException("Position cannot exceed 60 characters.");
         }
+    }
 
-        value = normalized;
+    public String getValue() {
+        return value;
     }
 }

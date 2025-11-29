@@ -18,4 +18,7 @@ public record Department(String value) {
 
         value = normalized;
     }
+    public String getValue() {
+        return value;
+    }
 }

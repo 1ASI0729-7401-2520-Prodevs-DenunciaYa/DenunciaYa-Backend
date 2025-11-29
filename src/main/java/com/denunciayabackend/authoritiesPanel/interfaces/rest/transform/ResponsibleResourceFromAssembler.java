@@ -8,11 +8,18 @@ public class ResponsibleResourceFromAssembler {
     public static ResponsibleResource fromDTO(ResponsibleQueryService.ResponsibleService dto) {
         return new ResponsibleResource(
                 dto.id(),
+                dto.firstName(),
+                dto.lastName(),
                 dto.fullName(),
                 dto.email(),
                 dto.phone(),
                 dto.role(),
-                dto.assignedComplaintsCount()
+                dto.description(),
+                dto.accessLevel(),
+                dto.position(),
+                dto.department(),
+                dto.statusResponsible()
+
         );
     }
 }

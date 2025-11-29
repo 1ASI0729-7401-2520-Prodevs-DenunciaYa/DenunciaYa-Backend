@@ -1,33 +1,33 @@
 package com.denunciayabackend.authoritiesPanel.domain.model.aggregates;
 
-import com.denunciayabackend.authoritiesPanel.domain.model.entities.AssignedComplaints;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
 import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @Entity
 @Getter
-public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
+public class Responsible{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // ID interno de JPA
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "responsible_id"))
-    private ResponsibleId responsibleId;
-
+    @AttributeOverride(name = "value", column = @Column(name = "responsible_id", unique = true))
+    private ResponsibleId responsibleId; // ID de negocio (String)
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "full_name"))
+            @AttributeOverride(name = "value", column = @Column(name = "first_name"))
     })
-    private FullName fullName;
+    private FirstName firstName;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "last_name"))
+    })
+    private LastName lastName;
 
     @Embedded
     @AttributeOverrides({
@@ -65,21 +65,18 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
     })
     private Description description;
 
-
     @Enumerated(EnumType.STRING)
     private AccessLevel accessLevel;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
-
-    @OneToMany(mappedBy = "responsible", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AssignedComplaints> assignedComplaints = new ArrayList<>();
+    private StatusResponsible statusResponsible;
 
     protected Responsible() {}
 
     public Responsible(
-            ResponsibleId id,
-            FullName fullName,
+            ResponsibleId responsibleId,
+            FirstName firstName,
+            LastName lastName,
             Email email,
             PhoneNumber phoneNumber,
             Position position,
@@ -87,11 +84,11 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
             Role role,
             Description description,
             AccessLevel accessLevel,
-            Status status,
-            List<AssignedComplaints> assignedComplaints
+            StatusResponsible statusResponsible
     ) {
-        this.responsibleId = requireNonNull(id, "ResponsibleId");
-        this.fullName = requireNonNull(fullName, "FullName");
+        this.responsibleId = requireNonNull(responsibleId, "ResponsibleId");
+        this.firstName = requireNonNull(firstName, "FirstName");
+        this.lastName = requireNonNull(lastName, "LastName");
         this.email = requireNonNull(email, "Email");
         this.phoneNumber = requireNonNull(phoneNumber, "PhoneNumber");
         this.position = requireNonNull(position, "Position");
@@ -99,8 +96,7 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
         this.role = requireNonNull(role, "Role");
         this.description = requireNonNull(description, "Description");
         this.accessLevel = requireNonNull(accessLevel, "AccessLevel");
-        this.status = requireNonNull(status, "Status");
-        this.assignedComplaints = new ArrayList<>(assignedComplaints);
+        this.statusResponsible = requireNonNull(statusResponsible, "Status");
     }
 
     private static <T> T requireNonNull(T value, String fieldName) {
@@ -109,29 +105,26 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
         return value;
     }
 
-    // ──────────────────────────────────────
-    // Métodos para manejar AssignedComplaint entity
-    // ──────────────────────────────────────
-
-    public void assignComplaint(ComplaintId complaintId) {
-        if (complaintId == null)
-            throw new IllegalArgumentException("ComplaintId cannot be null.");
-
-        AssignedComplaints assigned = new AssignedComplaints(complaintId, this);
-        assignedComplaints.add(assigned);
-    }
-
-    public void unassignComplaint(ComplaintId complaintId) {
-        assignedComplaints.removeIf(ac -> ac.getComplaintId().equals(complaintId));
-    }
-
-    public List<AssignedComplaints> getAssignedComplaints() {
-        return Collections.unmodifiableList(assignedComplaints);
-    }
-
-    public void updateProfile(FullName fullName, Email email, PhoneNumber phoneNumber) {
-        this.fullName = requireNonNull(fullName, "FullName");
+    public void updateProfile(FirstName firstName, LastName lastName, Email email, PhoneNumber phoneNumber,
+                              Role role, Description description, AccessLevel accessLevel,
+                              StatusResponsible statusResponsible, Position position, Department department) {
+        this.firstName = requireNonNull(firstName, "FirstName");
+        this.lastName = requireNonNull(lastName, "LastName");
         this.email = requireNonNull(email, "Email");
         this.phoneNumber = requireNonNull(phoneNumber, "PhoneNumber");
+        this.role = requireNonNull(role, "Role");
+        this.description = requireNonNull(description, "Description");
+        this.accessLevel = requireNonNull(accessLevel, "AccessLevel");
+        this.statusResponsible = requireNonNull(statusResponsible, "Status");
+        this.position = requireNonNull(position, "Position");
+        this.department = requireNonNull(department, "Department");
+    }
+
+    public String getFullName() {
+        return firstName.getValue() + " " + lastName.getValue();
+    }
+
+    public String getResponsibleId() {
+        return responsibleId.getValue();
     }
 }

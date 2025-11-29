@@ -3,21 +3,23 @@ package com.denunciayabackend.authoritiesPanel.domain.model.valueobjects;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record PhoneNumber(String phoneNumber) {
+public record PhoneNumber(String value) {
 
-    private static final String PHONE_REGEX = "^\\+?[0-9 ]{6,20}$";
+    private static final String PHONE_REGEX = "^\\+?[0-9\\s\\-\\(\\)]{6,20}$";
 
     public PhoneNumber {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+        if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException("PhoneNumber cannot be null or blank.");
         }
 
-        String normalized = phoneNumber.trim();
+        String normalized = value.trim();
 
         if (!normalized.matches(PHONE_REGEX)) {
             throw new IllegalArgumentException("Invalid phone number format.");
         }
+    }
 
-        phoneNumber = normalized;
+    public String getValue() {
+        return value;
     }
 }

@@ -33,12 +33,18 @@ public interface ResponsibleQueryService {
      * Returned to the frontend.
      */
     record ResponsibleService(
-            Long id,
+            Long id, // Cambiado de Long a String
+            String firstName,
+            String lastName,
             String fullName,
             String email,
             String phone,
             String role,
-            int assignedComplaintsCount
-
+            String description,
+            String accessLevel,
+            String statusResponsible,
+            String position,
+            String department
     ) { }
+
 }

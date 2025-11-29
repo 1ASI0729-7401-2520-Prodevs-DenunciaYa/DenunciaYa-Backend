@@ -7,15 +7,15 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.Responsi
  * Command for assigning a complaint to a responsible.
  */
 public record AssignComplaintCommand(
-        Long responsibleId,
-        Long complaintId
+        String responsibleId,
+        String complaintId
 ) {
 
     public AssignComplaintCommand {
-        if (responsibleId == null || responsibleId < 1) {
+        if (responsibleId == null || responsibleId.isBlank()) {
             throw new IllegalArgumentException("ResponsibleId cannot be null or less than 1.");
         }
-        if (complaintId == null || complaintId < 1) {
+        if (complaintId == null || complaintId.isBlank()) {
             throw new IllegalArgumentException("ComplaintId cannot be null or less than 1.");
         }
     }

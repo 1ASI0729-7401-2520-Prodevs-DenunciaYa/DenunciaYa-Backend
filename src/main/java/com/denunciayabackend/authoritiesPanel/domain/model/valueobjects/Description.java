@@ -18,4 +18,7 @@ public record Description(String value) {
 
         value = normalized;
     }
+    public String getValue() {
+        return value;
+    }
 }

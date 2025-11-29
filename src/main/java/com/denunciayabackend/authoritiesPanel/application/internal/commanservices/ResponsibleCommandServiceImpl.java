@@ -2,15 +2,10 @@ package com.denunciayabackend.authoritiesPanel.application.internal.commanservic
 
 import com.denunciayabackend.authoritiesPanel.domain.model.aggregates.Responsible;
 import com.denunciayabackend.authoritiesPanel.domain.model.commands.*;
-import com.denunciayabackend.authoritiesPanel.domain.model.entities.AssignedComplaints;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleCommandService;
 import com.denunciayabackend.authoritiesPanel.infrastructure.persistence.jpa.repositories.ResponsibleRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Command Service Implementation for Responsible aggregate.
@@ -20,93 +15,96 @@ public class ResponsibleCommandServiceImpl implements ResponsibleCommandService 
 
     private final ResponsibleRepository responsibleRepository;
 
-    // Para generar IDs simples; puedes reemplazar por un generador UUID o secuencia de DB
-    private final AtomicLong idGenerator = new AtomicLong(100L);
-
     public ResponsibleCommandServiceImpl(ResponsibleRepository responsibleRepository) {
         this.responsibleRepository = responsibleRepository;
     }
 
-    private Long generateNewId() {
-        return idGenerator.incrementAndGet();
+    private String generateBusinessId() {
+        return "RESP-" + System.currentTimeMillis(); // Genera un ID de negocio único
     }
-
 
     @Override
     public Long handle(CreateResponsibleCommand command) {
+        // Generar ID de negocio (String)
+        var responsibleId = new ResponsibleId(generateBusinessId());
 
-        var fullName = new FullName(command.firstName(), command.lastName());
+        var firstName = new FirstName(command.firstName());
+        var lastName = new LastName(command.lastName());
         var email = new Email(command.email());
         var phoneNumber = new PhoneNumber(command.phoneNumber());
         var role = new Role(command.role());
         var description = new Description(command.description());
+        var position = new Position(command.position() != null ? command.position() : command.role());
+        var department = new Department(command.department() != null ? command.department() : "Default Department");
         var accessLevel = AccessLevel.valueOf(command.accessLevel().toUpperCase());
 
         var responsible = new Responsible(
-                new ResponsibleId(generateNewId()),
-
-                fullName,
+                responsibleId, // ID de negocio (String)
+                firstName,
+                lastName,
                 email,
                 phoneNumber,
-                new Position(command.role()),
-                new Department("Default Department"),
+                position,
+                department,
                 role,
                 description,
-                AccessLevel.TECNICO,
-                Status.ACTIVO,
-                Collections.emptyList()
+                accessLevel,
+                StatusResponsible.ACTIVO
         );
 
-
         responsibleRepository.save(responsible);
-        return responsible.getId();
+        return responsible.getId(); // Devuelve el ID de JPA (Long)
     }
 
     // Delete Responsible
     @Override
     public void handle(DeleteResponsibleCommand command) {
-        Long id = command.responsibleId();
+        Long id = Long.valueOf(command.responsibleId()); // Ya es Long
         if (!responsibleRepository.existsById(id)) {
-            throw new IllegalArgumentException("Responsible with id %d does not exist".formatted(id));
+            throw new IllegalArgumentException("Responsible with id %s does not exist".formatted(id));
         }
         responsibleRepository.deleteById(id);
     }
 
-
     // Update Responsible Profile
     @Override
     public void handle(UpdateResponsibleProfileCommand command) {
-        var responsible = responsibleRepository.findById(command.responsibleId())
+        var responsible = responsibleRepository.findById(Long.valueOf(command.responsibleId())) // Buscar por ID de JPA
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Responsible with id %d does not exist".formatted(command.responsibleId())
+                        "Responsible with id %s does not exist".formatted(command.responsibleId())
                 ));
 
         responsible.updateProfile(
-                new FullName(command.firstName(), command.lastName()),
+                new FirstName(command.firstName()),
+                new LastName(command.lastName()),
                 new Email(command.email()),
-                new PhoneNumber(command.phoneNumber())
+                new PhoneNumber(command.phone()),
+                new Role(command.role()),
+                new Description(command.description()),
+                AccessLevel.valueOf(command.accessLevel()),
+                StatusResponsible.valueOf(command.status()),
+                new Position(command.position()),
+                new Department(command.department())
         );
 
         responsibleRepository.save(responsible);
     }
 
-
-
     // Assign Complaint
     @Override
     public void handle(AssignComplaintCommand command) {
-        var responsible = responsibleRepository.findById(command.responsibleId())
+        var responsible = responsibleRepository.findById(Long.valueOf(command.responsibleId())) // Buscar por ID de JPA
                 .orElseThrow(() -> new IllegalArgumentException("Responsible not found"));
-        responsible.assignComplaint(new ComplaintId(command.complaintId()));
+        // responsible.assignComplaint(new ComplaintId(command.complaintId()));
         responsibleRepository.save(responsible);
     }
 
     // Unassign Complaint
     @Override
     public void handle(UnassignComplaintCommand command) {
-        var responsible = responsibleRepository.findById(command.responsibleId())
+        var responsible = responsibleRepository.findById(Long.valueOf(command.responsibleId())) // Buscar por ID de JPA
                 .orElseThrow(() -> new IllegalArgumentException("Responsible not found"));
-        responsible.unassignComplaint(new ComplaintId(command.complaintId()));
+        // responsible.unassignComplaint(new ComplaintId(command.complaintId()));
         responsibleRepository.save(responsible);
     }
 }

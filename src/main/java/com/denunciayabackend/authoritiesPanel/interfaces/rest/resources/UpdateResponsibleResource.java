@@ -1,9 +1,6 @@
-package com.denunciayabackend.authoritiesPanel.domain.model.commands;
+package com.denunciayabackend.authoritiesPanel.interfaces.rest.resources;
 
-import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.ResponsibleId;
-
-public record UpdateResponsibleProfileCommand(
-        String responsibleId,
+public record UpdateResponsibleResource(
         String firstName,
         String lastName,
         String email,
@@ -17,11 +14,7 @@ public record UpdateResponsibleProfileCommand(
         String city,
         String district
 ) {
-
-    public UpdateResponsibleProfileCommand {
-        if (responsibleId == null || responsibleId.isBlank()) {
-            throw new IllegalArgumentException("ResponsibleId cannot be null or less than 1.");
-        }
+    public UpdateResponsibleResource {
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or blank");
         }
@@ -37,9 +30,5 @@ public record UpdateResponsibleProfileCommand(
         if (role == null || role.isBlank()) {
             throw new IllegalArgumentException("Role cannot be null or blank");
         }
-    }
-
-    public ResponsibleId getResponsibleIdVO() {
-        return new ResponsibleId(responsibleId);
     }
 }

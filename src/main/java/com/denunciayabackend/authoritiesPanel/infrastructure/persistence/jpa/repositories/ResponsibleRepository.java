@@ -7,18 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repository interface to interact with the database for Responsible aggregates.
- */
 @Repository
 public interface ResponsibleRepository extends JpaRepository<Responsible, Long> {
 
-    // Buscar por correo electrónico
-    Optional<Responsible> findByEmail(String email);
+    Optional<Responsible> findByResponsibleId(ResponsibleId responsibleId);
 
-    // Verificar existencia por correo electrónico
-    boolean existsByEmail(String email);
+    boolean existsByResponsibleId(ResponsibleId responsibleId);
 
-    // Verificar existencia por correo distinto al id dado
-    boolean existsByEmailAndIdIsNot(String email, ResponsibleId id);
+    void deleteByResponsibleId(ResponsibleId responsibleId);
 }

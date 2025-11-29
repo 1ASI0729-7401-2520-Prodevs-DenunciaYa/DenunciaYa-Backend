@@ -4,15 +4,15 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.Complain
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.ResponsibleId;
 
 public record UnassignComplaintCommand(
-        Long responsibleId,
-        Long complaintId
+        String responsibleId,
+        String complaintId
 ) {
 
     public UnassignComplaintCommand {
-        if (responsibleId == null || responsibleId < 1) {
+        if (responsibleId == null || responsibleId.isBlank()) {
             throw new IllegalArgumentException("ResponsibleId cannot be null or less than 1.");
         }
-        if (complaintId == null || complaintId < 1) {
+        if (complaintId == null || complaintId.isBlank()) {
             throw new IllegalArgumentException("ComplaintId cannot be null or less than 1.");
         }
     }

@@ -1,10 +1,8 @@
 package com.denunciayabackend.authoritiesPanel.application.internal.queryservices;
 
 import com.denunciayabackend.authoritiesPanel.domain.model.aggregates.Responsible;
-import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetAllResponsibleQuery;
-import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetResponsibleByIdQuery;
-import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetResponsibleWithComplaintCountQuery;
-import com.denunciayabackend.authoritiesPanel.domain.model.queries.SearchResponsibleQuery;
+import com.denunciayabackend.authoritiesPanel.domain.model.queries.*;
+import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.ResponsibleId;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleQueryService;
 import com.denunciayabackend.authoritiesPanel.infrastructure.persistence.jpa.repositories.ResponsibleRepository;
 import org.springframework.stereotype.Service;
@@ -31,9 +29,9 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
 
     @Override
     public ResponsibleService handle(GetResponsibleByIdQuery query) {
-        Long id = query.responsibleId(); // ← EXTRAEMOS el Long directamente
+        String id = String.valueOf(query.responsibleId()); // Cambiado a String
 
-        return responsibleRepository.findById(id)
+        return responsibleRepository.findByResponsibleId(new ResponsibleId(id))
                 .map(this::toDTO)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Responsible with id %s not found".formatted(id)
@@ -55,9 +53,10 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
         return responsibleRepository.findAll()
                 .stream()
                 .filter(r ->
-                        r.getFullName().firstName().toLowerCase().contains(keywordLower) ||
-                                r.getFullName().lastName().toLowerCase().contains(keywordLower) ||
-                                r.getRole().role().toLowerCase().contains(keywordLower)
+                        r.getFirstName().getValue().toLowerCase().contains(keywordLower) ||
+                                r.getLastName().getValue().toLowerCase().contains(keywordLower) ||
+                                r.getFullName().toLowerCase().contains(keywordLower) ||
+                                r.getRole().getValue().toLowerCase().contains(keywordLower)
                 )
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -66,11 +65,17 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     private ResponsibleService toDTO(Responsible responsible) {
         return new ResponsibleService(
                 responsible.getId(),
-                responsible.getFullName().firstName() + " " + responsible.getFullName().lastName(),
-                responsible.getEmail().email(),
-                responsible.getPhoneNumber().phoneNumber(),
-                responsible.getRole().role(),
-                responsible.getAssignedComplaints().size()
+                responsible.getFirstName().getValue(),
+                responsible.getLastName().getValue(),
+                responsible.getFullName(),
+                responsible.getEmail().getValue(),
+                responsible.getPhoneNumber().getValue(),
+                responsible.getRole().getValue(),
+                responsible.getDescription() != null ? responsible.getDescription().getValue() : "",
+                responsible.getAccessLevel() != null ? responsible.getAccessLevel().name() : "",
+                responsible.getStatusResponsible() != null ? responsible.getStatusResponsible().name() : "",
+                responsible.getPosition() != null ? responsible.getPosition().getValue() : "",
+                responsible.getDepartment() != null ? responsible.getDepartment().getValue() : ""
         );
     }
 }
