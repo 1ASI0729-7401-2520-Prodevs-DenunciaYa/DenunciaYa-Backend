@@ -12,32 +12,33 @@ public interface ResponsibleQueryService {
     /**
      * Retrieves all responsibles.
      */
-    List<ResponsibleDTO> handle(GetAllResponsibleQuery query);
+    List<ResponsibleService> handle(GetAllResponsibleQuery query);
 
     /**
      * Retrieves a responsible by its ID.
      */
-    ResponsibleDTO handle(GetResponsibleByIdQuery query);
+    ResponsibleService handle(GetResponsibleByIdQuery query);
 
     /**
      * Retrieves all responsibles with complaint count.
      */
-    List<ResponsibleDTO> handle(GetResponsibleWithComplaintCountQuery query);
+    List<ResponsibleService> handle(GetResponsibleWithComplaintCountQuery query);
 
     /**
      * Searches responsibles by keyword (name or role).
      */
-    List<ResponsibleDTO> handle(SearchResponsibleQuery query);
+    List<ResponsibleService> handle(SearchResponsibleQuery query);
 
     /**
-     * DTO returned to the frontend.
+     * Returned to the frontend.
      */
-    record ResponsibleDTO(
+    record ResponsibleService(
             Long id,
             String fullName,
             String email,
             String phone,
             String role,
             int assignedComplaintsCount
+
     ) { }
 }

@@ -22,7 +22,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     }
 
     @Override
-    public List<ResponsibleDTO> handle(GetAllResponsibleQuery query) {
+    public List<ResponsibleService> handle(GetAllResponsibleQuery query) {
         return responsibleRepository.findAll()
                 .stream()
                 .map(this::toDTO)
@@ -30,7 +30,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     }
 
     @Override
-    public ResponsibleDTO handle(GetResponsibleByIdQuery query) {
+    public ResponsibleService handle(GetResponsibleByIdQuery query) {
         Long id = query.responsibleId(); // ← EXTRAEMOS el Long directamente
 
         return responsibleRepository.findById(id)
@@ -41,7 +41,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     }
 
     @Override
-    public List<ResponsibleDTO> handle(GetResponsibleWithComplaintCountQuery query) {
+    public List<ResponsibleService> handle(GetResponsibleWithComplaintCountQuery query) {
         return responsibleRepository.findAll()
                 .stream()
                 .map(this::toDTO)
@@ -49,7 +49,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     }
 
     @Override
-    public List<ResponsibleDTO> handle(SearchResponsibleQuery query) {
+    public List<ResponsibleService> handle(SearchResponsibleQuery query) {
         String keywordLower = query.keyword().toLowerCase();
 
         return responsibleRepository.findAll()
@@ -63,8 +63,8 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
                 .collect(Collectors.toList());
     }
 
-    private ResponsibleDTO toDTO(Responsible responsible) {
-        return new ResponsibleDTO(
+    private ResponsibleService toDTO(Responsible responsible) {
+        return new ResponsibleService(
                 responsible.getId(),
                 responsible.getFullName().firstName() + " " + responsible.getFullName().lastName(),
                 responsible.getEmail().email(),

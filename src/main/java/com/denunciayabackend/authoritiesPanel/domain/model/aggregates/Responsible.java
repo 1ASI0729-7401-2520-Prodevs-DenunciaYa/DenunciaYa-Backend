@@ -1,13 +1,14 @@
 package com.denunciayabackend.authoritiesPanel.domain.model.aggregates;
 
+import com.denunciayabackend.authoritiesPanel.domain.model.entities.AssignedComplaints;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
 import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -16,11 +17,11 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "responsible_id"))
-    })
+    @AttributeOverride(name = "value", column = @Column(name = "responsible_id"))
     private ResponsibleId responsibleId;
+
 
     @Embedded
     @AttributeOverrides({
@@ -64,18 +65,17 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
     })
     private Description description;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "access_level"))
-    })
+
+    @Enumerated(EnumType.STRING)
     private AccessLevel accessLevel;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "responsible_assigned_complaints",
-            joinColumns = @JoinColumn(name = "responsible_id"))
-    private Set<ComplaintId> assignedComplaints = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
-    protected Responsible() { }
+    @OneToMany(mappedBy = "responsible", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AssignedComplaints> assignedComplaints = new ArrayList<>();
+
+    protected Responsible() {}
 
     public Responsible(
             ResponsibleId id,
@@ -86,7 +86,9 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
             Department department,
             Role role,
             Description description,
-            AccessLevel accessLevel
+            AccessLevel accessLevel,
+            Status status,
+            List<AssignedComplaints> assignedComplaints
     ) {
         this.responsibleId = requireNonNull(id, "ResponsibleId");
         this.fullName = requireNonNull(fullName, "FullName");
@@ -97,6 +99,8 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
         this.role = requireNonNull(role, "Role");
         this.description = requireNonNull(description, "Description");
         this.accessLevel = requireNonNull(accessLevel, "AccessLevel");
+        this.status = requireNonNull(status, "Status");
+        this.assignedComplaints = new ArrayList<>(assignedComplaints);
     }
 
     private static <T> T requireNonNull(T value, String fieldName) {
@@ -105,19 +109,24 @@ public class Responsible extends AuditableAbstractAggregateRoot<Responsible> {
         return value;
     }
 
+    // ──────────────────────────────────────
+    // Métodos para manejar AssignedComplaint entity
+    // ──────────────────────────────────────
+
     public void assignComplaint(ComplaintId complaintId) {
         if (complaintId == null)
             throw new IllegalArgumentException("ComplaintId cannot be null.");
 
-        assignedComplaints.add(complaintId);
+        AssignedComplaints assigned = new AssignedComplaints(complaintId, this);
+        assignedComplaints.add(assigned);
     }
 
     public void unassignComplaint(ComplaintId complaintId) {
-        assignedComplaints.remove(complaintId);
+        assignedComplaints.removeIf(ac -> ac.getComplaintId().equals(complaintId));
     }
 
-    public Set<ComplaintId> getAssignedComplaints() {
-        return Collections.unmodifiableSet(assignedComplaints);
+    public List<AssignedComplaints> getAssignedComplaints() {
+        return Collections.unmodifiableList(assignedComplaints);
     }
 
     public void updateProfile(FullName fullName, Email email, PhoneNumber phoneNumber) {

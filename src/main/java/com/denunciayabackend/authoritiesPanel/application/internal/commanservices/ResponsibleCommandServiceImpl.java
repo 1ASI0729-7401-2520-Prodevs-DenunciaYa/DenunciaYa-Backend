@@ -2,11 +2,13 @@ package com.denunciayabackend.authoritiesPanel.application.internal.commanservic
 
 import com.denunciayabackend.authoritiesPanel.domain.model.aggregates.Responsible;
 import com.denunciayabackend.authoritiesPanel.domain.model.commands.*;
+import com.denunciayabackend.authoritiesPanel.domain.model.entities.AssignedComplaints;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleCommandService;
 import com.denunciayabackend.authoritiesPanel.infrastructure.persistence.jpa.repositories.ResponsibleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -32,6 +34,7 @@ public class ResponsibleCommandServiceImpl implements ResponsibleCommandService 
 
     @Override
     public Long handle(CreateResponsibleCommand command) {
+
         var fullName = new FullName(command.firstName(), command.lastName());
         var email = new Email(command.email());
         var phoneNumber = new PhoneNumber(command.phoneNumber());
@@ -41,6 +44,7 @@ public class ResponsibleCommandServiceImpl implements ResponsibleCommandService 
 
         var responsible = new Responsible(
                 new ResponsibleId(generateNewId()),
+
                 fullName,
                 email,
                 phoneNumber,
@@ -48,7 +52,9 @@ public class ResponsibleCommandServiceImpl implements ResponsibleCommandService 
                 new Department("Default Department"),
                 role,
                 description,
-                accessLevel
+                AccessLevel.TECNICO,
+                Status.ACTIVO,
+                Collections.emptyList()
         );
 
 
