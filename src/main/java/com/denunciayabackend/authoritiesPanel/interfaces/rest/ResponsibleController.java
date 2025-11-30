@@ -1,10 +1,8 @@
 package com.denunciayabackend.authoritiesPanel.interfaces.rest;
 
 import com.denunciayabackend.authoritiesPanel.domain.model.commands.DeleteResponsibleCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.UpdateResponsibleProfileCommand;
 import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetAllResponsibleQuery;
 import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetResponsibleByIdQuery;
-import com.denunciayabackend.authoritiesPanel.domain.model.queries.GetResponsibleWithComplaintCountQuery;
 import com.denunciayabackend.authoritiesPanel.domain.model.queries.SearchResponsibleQuery;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleCommandService;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleQueryService;
@@ -53,8 +51,8 @@ public class ResponsibleController {
         Long createdId = responsibleCommandService.handle(command);
 
         if (createdId != null) {
-            ResponsibleQueryService.ResponsibleService dto = responsibleQueryService.handle(new GetResponsibleByIdQuery(createdId));
-            return new ResponseEntity<>(ResponsibleResourceFromAssembler.fromDTO(dto), CREATED);
+            ResponsibleQueryService.ResponsibleService service = responsibleQueryService.handle(new GetResponsibleByIdQuery(createdId));
+            return new ResponseEntity<>(ResponsibleResourceFromAssembler.fromResource(service), CREATED);
         } else {
             return ResponseEntity.badRequest().build();
         }
@@ -68,9 +66,9 @@ public class ResponsibleController {
     })
     @GetMapping("{id}")
     public ResponseEntity<ResponsibleResource> getResponsibleById(@PathVariable Long id) { // CAMBIADO A Long
-        ResponsibleQueryService.ResponsibleService dto = responsibleQueryService.handle(new GetResponsibleByIdQuery(id));
-        if (dto == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(ResponsibleResourceFromAssembler.fromDTO(dto));
+        ResponsibleQueryService.ResponsibleService service = responsibleQueryService.handle(new GetResponsibleByIdQuery(id));
+        if (service == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(ResponsibleResourceFromAssembler.fromResource(service));
     }
 
     // ---------------------- GET ALL ----------------------
@@ -80,9 +78,9 @@ public class ResponsibleController {
     })
     @GetMapping
     public ResponseEntity<List<ResponsibleResource>> getAllResponsibles() {
-        List<ResponsibleQueryService.ResponsibleService> dtos = responsibleQueryService.handle(new GetAllResponsibleQuery());
-        List<ResponsibleResource> resources = dtos.stream()
-                .map(ResponsibleResourceFromAssembler::fromDTO)
+        List<ResponsibleQueryService.ResponsibleService> services = responsibleQueryService.handle(new GetAllResponsibleQuery());
+        List<ResponsibleResource> resources = services.stream()
+                .map(ResponsibleResourceFromAssembler::fromResource)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resources);
     }
@@ -91,9 +89,9 @@ public class ResponsibleController {
     @Operation(summary = "Search Responsibles", description = "Search responsibles by keyword (name or role)")
     @GetMapping("/search")
     public ResponseEntity<List<ResponsibleResource>> searchResponsibles(@RequestParam String keyword) {
-        List<ResponsibleQueryService.ResponsibleService> dtos = responsibleQueryService.handle(new SearchResponsibleQuery(keyword));
-        List<ResponsibleResource> resources = dtos.stream()
-                .map(ResponsibleResourceFromAssembler::fromDTO)
+        List<ResponsibleQueryService.ResponsibleService> services = responsibleQueryService.handle(new SearchResponsibleQuery(keyword));
+        List<ResponsibleResource> resources = services.stream()
+                .map(ResponsibleResourceFromAssembler::fromResource)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resources);
     }
@@ -110,9 +108,9 @@ public class ResponsibleController {
         var command = UpdateResponsibleCommandFromResourceAssembler.toCommand(String.valueOf(id), resource);
         responsibleCommandService.handle(command);
 
-        ResponsibleQueryService.ResponsibleService dto = responsibleQueryService.handle(new GetResponsibleByIdQuery(id));
-        if (dto == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(ResponsibleResourceFromAssembler.fromDTO(dto));
+        ResponsibleQueryService.ResponsibleService service = responsibleQueryService.handle(new GetResponsibleByIdQuery(id));
+        if (service == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(ResponsibleResourceFromAssembler.fromResource(service));
     }
 
     // ---------------------- DELETE ----------------------

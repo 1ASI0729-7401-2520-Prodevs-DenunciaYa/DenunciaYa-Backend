@@ -23,7 +23,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     public List<ResponsibleService> handle(GetAllResponsibleQuery query) {
         return responsibleRepository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(this::toService)
                 .collect(Collectors.toList());
     }
 
@@ -32,7 +32,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
         String id = String.valueOf(query.responsibleId()); // Cambiado a String
 
         return responsibleRepository.findByResponsibleId(new ResponsibleId(id))
-                .map(this::toDTO)
+                .map(this::toService)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Responsible with id %s not found".formatted(id)
                 ));
@@ -42,7 +42,7 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
     public List<ResponsibleService> handle(GetResponsibleWithComplaintCountQuery query) {
         return responsibleRepository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(this::toService)
                 .collect(Collectors.toList());
     }
 
@@ -58,11 +58,11 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
                                 r.getFullName().toLowerCase().contains(keywordLower) ||
                                 r.getRole().getValue().toLowerCase().contains(keywordLower)
                 )
-                .map(this::toDTO)
+                .map(this::toService)
                 .collect(Collectors.toList());
     }
 
-    private ResponsibleService toDTO(Responsible responsible) {
+    private ResponsibleService toService(Responsible responsible) {
         return new ResponsibleService(
                 responsible.getId(),
                 responsible.getFirstName().getValue(),

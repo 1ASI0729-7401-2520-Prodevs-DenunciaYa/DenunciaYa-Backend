@@ -5,20 +5,20 @@ import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.Responsi
 
 public class ResponsibleResourceFromAssembler {
 
-    public static ResponsibleResource fromDTO(ResponsibleQueryService.ResponsibleService dto) {
+    public static ResponsibleResource fromResource(ResponsibleQueryService.ResponsibleService resource) {
         return new ResponsibleResource(
-                dto.id(),
-                dto.firstName(),
-                dto.lastName(),
-                dto.fullName(),
-                dto.email(),
-                dto.phone(),
-                dto.role(),
-                dto.description(),
-                dto.accessLevel(),
-                dto.position(),
-                dto.department(),
-                dto.statusResponsible()
+                resource.id(),
+                resource.firstName(),
+                resource.lastName(),
+                resource.fullName(),
+                resource.email(),
+                resource.phone(),
+                resource.role(),
+                resource.description(),
+                resource.accessLevel(),
+                resource.position(),
+                resource.department(),
+                resource.statusResponsible()
 
         );
     }

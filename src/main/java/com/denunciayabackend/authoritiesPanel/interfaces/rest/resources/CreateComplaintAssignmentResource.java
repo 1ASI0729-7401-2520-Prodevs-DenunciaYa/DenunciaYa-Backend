@@ -1,11 +1,11 @@
-package com.denunciayabackend.authoritiesPanel.domain.model.commands;
+package com.denunciayabackend.authoritiesPanel.interfaces.rest.resources;
 
-public record AssignComplaintCommand(
+public record CreateComplaintAssignmentResource(
         String complaintId,
         String responsibleId,
         String assignedBy
 ) {
-    public AssignComplaintCommand {
+    public CreateComplaintAssignmentResource {
         if (complaintId == null || complaintId.isBlank()) {
             throw new IllegalArgumentException("ComplaintId cannot be null or blank");
         }
