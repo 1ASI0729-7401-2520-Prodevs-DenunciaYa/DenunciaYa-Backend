@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "ComplaintCreation")
-@Table(name = "complaint_creation")
+@Table(name = "complaints")
 public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
     @Id
