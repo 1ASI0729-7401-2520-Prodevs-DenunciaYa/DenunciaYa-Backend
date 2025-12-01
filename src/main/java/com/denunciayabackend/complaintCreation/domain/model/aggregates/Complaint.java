@@ -12,7 +12,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "Complaints")
+@Entity(name = "ComplaintCreation")
 @Table(name = "complaints")
 public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
