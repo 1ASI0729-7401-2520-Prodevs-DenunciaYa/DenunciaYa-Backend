@@ -2,7 +2,6 @@ package com.denunciayabackend.authoritiesPanel.application.internal.queryservice
 
 import com.denunciayabackend.authoritiesPanel.domain.model.aggregates.Responsible;
 import com.denunciayabackend.authoritiesPanel.domain.model.queries.*;
-import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.ResponsibleId;
 import com.denunciayabackend.authoritiesPanel.domain.services.ResponsibleQueryService;
 import com.denunciayabackend.authoritiesPanel.infrastructure.persistence.jpa.repositories.ResponsibleRepository;
 import org.springframework.stereotype.Service;
@@ -27,14 +26,13 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     public ResponsibleService handle(GetResponsibleByIdQuery query) {
-        String id = String.valueOf(query.responsibleId()); // Cambiado a String
-
-        return responsibleRepository.findByResponsibleId(new ResponsibleId(id))
+        return responsibleRepository.findById(query.responsibleId())
                 .map(this::toService)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Responsible with id %s not found".formatted(id)
+                        "Responsible with id %s not found".formatted(query.responsibleId())
                 ));
     }
 

@@ -17,9 +17,7 @@ public class UpdateResponsibleCommandFromResourceAssembler {
                 resource.accessLevel(),
                 resource.status(),
                 resource.position(),
-                resource.department(),
-                resource.city(),
-                resource.district()
+                resource.department()
         );
     }
 }

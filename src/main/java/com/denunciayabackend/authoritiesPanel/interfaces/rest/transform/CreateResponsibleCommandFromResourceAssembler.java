@@ -15,7 +15,6 @@ public class CreateResponsibleCommandFromResourceAssembler {
                 resource.role(),
                 resource.description(),
                 resource.accessLevel(),
-                resource.role(),
                 resource.position(),
                 resource.department()
 

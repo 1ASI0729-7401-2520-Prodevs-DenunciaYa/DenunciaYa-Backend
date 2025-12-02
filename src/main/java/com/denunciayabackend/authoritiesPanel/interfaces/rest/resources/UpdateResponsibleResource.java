@@ -10,9 +10,7 @@ public record UpdateResponsibleResource(
         String accessLevel,
         String status,
         String position,
-        String department,
-        String city,
-        String district
+        String department
 ) {
     public UpdateResponsibleResource {
         if (firstName == null || firstName.isBlank()) {
