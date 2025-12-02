@@ -13,14 +13,12 @@ public record UpdateResponsibleProfileCommand(
         String accessLevel,
         String status,
         String position,
-        String department,
-        String city,
-        String district
+        String department
 ) {
 
     public UpdateResponsibleProfileCommand {
         if (responsibleId == null || responsibleId.isBlank()) {
-            throw new IllegalArgumentException("ResponsibleId cannot be null or less than 1.");
+            throw new IllegalArgumentException("ResponsibleId cannot be null or blank.");
         }
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or blank");

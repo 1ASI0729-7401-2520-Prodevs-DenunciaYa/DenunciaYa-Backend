@@ -6,11 +6,10 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.AccessLe
  * Command to create a new Responsible.
  */
 public record CreateResponsibleCommand(
-        String responsibleId,
         String firstName,
         String lastName,
         String email,
-        String phoneNumber,
+        String phoneNumber, // Ojo: A veces se llama 'phone' o 'phoneNumber', ajustalo si tu Assembler da error
         String role,
         String description,
         String accessLevel,
