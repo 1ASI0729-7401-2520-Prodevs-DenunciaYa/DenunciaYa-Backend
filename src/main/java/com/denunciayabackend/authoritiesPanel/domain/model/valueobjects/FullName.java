@@ -25,7 +25,6 @@ public record FullName(String firstName, String lastName) {
             throw new IllegalArgumentException(fieldName + " cannot be longer than " + max + " characters.");
         }
 
-        // Letras (incluye acentuadas), espacios, puntos, apóstrofes y guiones
         String allowedRegex = "^[\\p{L} .'-]{1," + max + "}$";
         if (!trimmed.matches(allowedRegex)) {
             throw new IllegalArgumentException(fieldName + " contains invalid characters.");

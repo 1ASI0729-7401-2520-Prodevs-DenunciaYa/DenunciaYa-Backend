@@ -9,7 +9,7 @@ public record CreateResponsibleCommand(
         String firstName,
         String lastName,
         String email,
-        String phoneNumber, // Ojo: A veces se llama 'phone' o 'phoneNumber', ajustalo si tu Assembler da error
+        String phoneNumber,
         String role,
         String description,
         String accessLevel,
@@ -40,7 +40,6 @@ public record CreateResponsibleCommand(
             throw new IllegalArgumentException("Access level cannot be null or blank");
         }
 
-        // Validar que accessLevel sea un valor válido del enum
         try {
             AccessLevel.valueOf(accessLevel.toUpperCase());
         } catch (IllegalArgumentException ex) {

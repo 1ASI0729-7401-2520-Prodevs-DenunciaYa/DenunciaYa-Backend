@@ -65,7 +65,7 @@ public class ResponsibleController {
             @ApiResponse(responseCode = "404", description = "Responsible not found")
     })
     @GetMapping("{id}")
-    public ResponseEntity<ResponsibleResource> getResponsibleById(@PathVariable Long id) { // CAMBIADO A Long
+    public ResponseEntity<ResponsibleResource> getResponsibleById(@PathVariable Long id) {
         ResponsibleQueryService.ResponsibleService service = responsibleQueryService.handle(new GetResponsibleByIdQuery(id));
         if (service == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(ResponsibleResourceFromAssembler.fromResource(service));
@@ -103,7 +103,7 @@ public class ResponsibleController {
             @ApiResponse(responseCode = "404", description = "Responsible not found")
     })
     @PutMapping("{id}")
-    public ResponseEntity<ResponsibleResource> updateResponsible(@PathVariable Long id, // CAMBIADO A Long
+    public ResponseEntity<ResponsibleResource> updateResponsible(@PathVariable Long id,
                                                                  @RequestBody UpdateResponsibleResource resource) {
         var command = UpdateResponsibleCommandFromResourceAssembler.toCommand(String.valueOf(id), resource);
         responsibleCommandService.handle(command);
@@ -120,7 +120,7 @@ public class ResponsibleController {
             @ApiResponse(responseCode = "404", description = "Responsible not found")
     })
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteResponsible(@PathVariable Long id) { // CAMBIADO A Long
+    public ResponseEntity<Void> deleteResponsible(@PathVariable Long id) {
         responsibleCommandService.handle(new DeleteResponsibleCommand(id));
         return ResponseEntity.ok().build();
     }

@@ -4,18 +4,24 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
 import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
-
+/**
+ * Aggregate root representing a responsible authority within the system.
+ * Stores identity, personal information, organizational data, and access level
+ * using strongly-typed value objects to ensure validation and domain consistency.
+ */
 @Entity
 @Getter
 public class Responsible{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // ID interno de JPA
-
+    private Long id;
+    /**
+     * Business identifier for the responsible user.
+     */
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "responsible_id", unique = true))
-    private ResponsibleId responsibleId; // ID de negocio (String)
+    private ResponsibleId responsibleId;
 
     @Embedded
     @AttributeOverrides({
@@ -72,7 +78,9 @@ public class Responsible{
     private StatusResponsible statusResponsible;
 
     protected Responsible() {}
-
+    /**
+     * Creates a new responsible authority with validated value objects.
+     */
     public Responsible(
             ResponsibleId responsibleId,
             FirstName firstName,
@@ -105,6 +113,9 @@ public class Responsible{
         return value;
     }
 
+    /**
+     * Updates profile and organizational information of the responsible.
+     */
     public void updateProfile(FirstName firstName, LastName lastName, Email email, PhoneNumber phoneNumber,
                               Role role, Description description, AccessLevel accessLevel,
                               StatusResponsible statusResponsible, Position position, Department department) {
@@ -119,11 +130,15 @@ public class Responsible{
         this.position = requireNonNull(position, "Position");
         this.department = requireNonNull(department, "Department");
     }
-
+    /**
+     * Returns the full name (first + last).
+     */
     public String getFullName() {
         return firstName.getValue() + " " + lastName.getValue();
     }
-
+    /**
+     * Returns the business identifier value.
+     */
     public String getResponsibleId() {
         return responsibleId.getValue();
     }

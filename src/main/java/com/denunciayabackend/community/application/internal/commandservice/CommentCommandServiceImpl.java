@@ -23,18 +23,16 @@ public class CommentCommandServiceImpl implements CommentCommandService {
 
     @Override
     public Long handle(CreateCommentCommand command) {
-        // buscar el post
         Post post = postRepository.findById(command.postId())
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
         Comment comment = new Comment(
                 post,
-                new UserId(command.userId()), // ✅ aquí se envuelve
+                new UserId(command.userId()),
                 command.author(),
                 command.content()
         );
 
-        // guardar y retornar el id
         commentRepository.save(comment);
         return comment.getId();
     }

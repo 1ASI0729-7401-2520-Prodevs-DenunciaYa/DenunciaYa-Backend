@@ -16,7 +16,6 @@ public record Email(String value) {
             throw new IllegalArgumentException("Email cannot exceed 255 characters.");
         }
 
-        // Validación básica de email
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         if (!normalized.matches(emailRegex)) {
             throw new IllegalArgumentException("Invalid email format.");

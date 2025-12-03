@@ -15,7 +15,6 @@ public record ComplaintId(String value) {
 
         String normalized = value.trim();
 
-        // Validar que sea un número de 6 dígitos como string
         if (!normalized.matches("^\\d{6}$")) {
             throw new IllegalArgumentException("ComplaintId must be a 6-digit number.");
         }

@@ -17,7 +17,6 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
     List<Complaint> findByStatus(ComplaintStatus status);
 
-    // ELIMINADO: findByUserIdValue ya que Complaint no tiene userId
 
     @Query("SELECT c FROM ComplaintCreation c WHERE c.department = :department AND c.city = :city")
     List<Complaint> findByDepartmentAndCity(@Param("department") String department, @Param("city") String city);

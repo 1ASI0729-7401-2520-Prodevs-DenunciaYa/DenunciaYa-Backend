@@ -13,14 +13,13 @@ public class ComplaintCreatedEvent {
     }
 
     public String getComplaintId() {
-        return complaint.getComplaintId(); // Cambiado a getComplaintId()
+        return complaint.getComplaintId();
     }
 
     public String getCategory() {
         return complaint.getCategory();
     }
 
-    // ELIMINADO: getUserId() ya que Complaint no tiene userId
 
     public Complaint getComplaint() { return complaint; }
     public String getEventType() { return eventType; }

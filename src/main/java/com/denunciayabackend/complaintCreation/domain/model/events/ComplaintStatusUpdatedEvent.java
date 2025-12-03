@@ -20,7 +20,7 @@ public class ComplaintStatusUpdatedEvent {
     }
 
     public String getComplaintId() {
-        return complaint.getComplaintId(); // Cambiado a getComplaintId()
+        return complaint.getComplaintId();
     }
 
     public Complaint getComplaint() { return complaint; }

@@ -5,36 +5,60 @@ import com.denunciayabackend.authoritiesPanel.domain.model.entities.ComplaintAss
 
 import java.util.List;
 import java.util.Optional;
-
+/**
+ * Service interface for managing complaint assignments.
+ * Provides command handling and query operations related to the
+ * lifecycle of complaint-to-responsible assignments.
+ */
 public interface ComplaintAssignmentService {
 
-    // Crear nueva asignación
+    /**
+     * Handles the assignment of a complaint to a responsible user.
+     */
     ComplaintAssignment handle(AssignComplaintCommand command);
 
-    // Actualizar estado de asignación
+    /**
+     * Updates the status of an existing assignment.
+     */
     ComplaintAssignment handle(UpdateAssignmentStatusCommand command);
 
-    // Reasignar denuncia
+    /**
+     * Reassigns a complaint to a different responsible user.
+     */
     ComplaintAssignment handle(ReassignComplaintCommand command);
 
-    // Obtener asignación por ID
+    /**
+     * Retrieves an assignment by its ID.
+     */
     Optional<ComplaintAssignment> getAssignmentById(String id);
 
-    // Obtener asignación activa de una denuncia
+    /**
+     * Retrieves the active assignment of a given complaint.
+     */
     Optional<ComplaintAssignment> getActiveAssignmentByComplaintId(String complaintId);
 
-    // Obtener historial de asignaciones de una denuncia
+    /**
+     * Retrieves the full assignment history for a complaint.
+     */
     List<ComplaintAssignment> getAssignmentHistoryByComplaint(String complaintId);
 
-    // Obtener asignaciones activas por responsable
+    /**
+     * Retrieves active assignments associated with a responsible user.
+     */
     List<ComplaintAssignment> getActiveAssignmentsByResponsible(String responsibleId);
 
-    // Obtener todas las asignaciones de un responsable
+    /**
+     * Retrieves all assignments (active or past) linked to a responsible user.
+     */
     List<ComplaintAssignment> getAllAssignmentsByResponsible(String responsibleId);
 
-    // Contar denuncias activas por responsable
+    /**
+     * Counts the number of currently active assignments of a responsible user.
+     */
     long countActiveAssignmentsByResponsible(String responsibleId);
 
-    // Verificar si una denuncia ya está asignada
+    /**
+     * Checks whether a complaint already has an active assignment.
+     */
     boolean isComplaintAlreadyAssigned(String complaintId);
 }

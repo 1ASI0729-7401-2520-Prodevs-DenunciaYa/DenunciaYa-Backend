@@ -147,7 +147,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.complaintId != null ? this.complaintId.value() : null;
     }
 
-    // Mantener el método para el ID interno
     public Long getId() {
         return this.id;
     }
@@ -218,7 +217,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.status == ComplaintStatus.PENDING || this.status == ComplaintStatus.AWAITING_RESPONSE;
     }
 
-    // Getters para uso interno (no para JSON)
     public ComplaintStatus getStatusEnum() {
         return this.status;
     }

@@ -51,7 +51,7 @@ public class ResponsibleCommandServiceImpl implements ResponsibleCommandService 
                 StatusResponsible.ACTIVO
         );
 
-        var savedResponsible = responsibleRepository.save(responsible); // Capturas la instancia guardada
+        var savedResponsible = responsibleRepository.save(responsible);
         return savedResponsible.getId();
 
     }

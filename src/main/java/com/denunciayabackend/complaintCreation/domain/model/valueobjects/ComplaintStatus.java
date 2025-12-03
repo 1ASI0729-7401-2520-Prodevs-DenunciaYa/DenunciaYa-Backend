@@ -1,15 +1,14 @@
 package com.denunciayabackend.complaintCreation.domain.model.valueobjects;
 
 public enum ComplaintStatus {
-    PENDING,           // "Pending" en JSON
-    ACCEPTED,          // "Accepted" en JSON
-    IN_PROCESS,        // "In Process" en JSON
-    COMPLETED,         // "Completed" en JSON
-    REJECTED,          // "Rejected" en JSON
-    DRAFT,             // "Draft" en JSON
-    AWAITING_RESPONSE; // "Awaiting response" en JSON
+    PENDING,
+    ACCEPTED,
+    IN_PROCESS,
+    COMPLETED,
+    REJECTED,
+    DRAFT,
+    AWAITING_RESPONSE;
 
-    // Método para convertir a formato JSON
     public String toJsonValue() {
         switch (this) {
             case PENDING: return "Pending";
@@ -23,7 +22,6 @@ public enum ComplaintStatus {
         }
     }
 
-    // Método para convertir desde formato JSON
     public static ComplaintStatus fromJsonValue(String jsonValue) {
         if (jsonValue == null) return null;
 

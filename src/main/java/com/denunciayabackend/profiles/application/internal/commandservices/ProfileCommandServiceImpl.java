@@ -15,7 +15,7 @@ import java.util.Optional;
  * Profile Command Service Implementation
  */
 @Service
-@Transactional  // ✅ Esto asegura que los cambios se persistan
+@Transactional
 public class ProfileCommandServiceImpl implements ProfileCommandService {
 
     private final ProfileRepository profileRepository;
@@ -28,7 +28,6 @@ public class ProfileCommandServiceImpl implements ProfileCommandService {
     public Optional<Profile> handle(CreateProfileCommand command) {
         var emailAddress = new EmailAddress(command.email());
 
-        // Validar si ya existe un perfil con ese email o userId
         if (profileRepository.existsByEmailAddress(emailAddress)) {
             throw new IllegalArgumentException("Profile with email address already exists");
         }
@@ -36,7 +35,6 @@ public class ProfileCommandServiceImpl implements ProfileCommandService {
             throw new IllegalArgumentException("Profile with userId already exists");
         }
 
-        // Crear y guardar perfil
         var profile = new Profile(command);
         profileRepository.save(profile);
 

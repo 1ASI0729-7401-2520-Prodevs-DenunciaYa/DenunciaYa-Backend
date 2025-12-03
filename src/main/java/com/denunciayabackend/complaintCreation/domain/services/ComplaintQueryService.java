@@ -9,19 +9,17 @@ import java.util.List;
 import java.util.Optional;
 @Service
 public interface ComplaintQueryService {
-    // Manejo de queries
     List<Complaint> handle(GetAllComplaintsQuery query);
     Optional<Complaint> handle(GetComplaintByIdQuery query);
     Optional<Complaint> handle(GetComplaintByComplaintIdQuery query);
     List<Complaint> handle(GetComplaintsByStatusQuery query);
     List<Complaint> handle(GetComplaintsByDepartmentAndCityQuery query);
 
-    // Métodos de conveniencia
     List<Complaint> findAllComplaints();
     Optional<Complaint> findComplaintById(Long id);
     Optional<Complaint> findComplaintByComplaintId(String complaintId);
     List<Complaint> findComplaintsByStatus(ComplaintStatus status);
-    List<Complaint> findComplaintsByUserId(String userId); // Mantener por compatibilidad pero lanzará excepción
+    List<Complaint> findComplaintsByUserId(String userId);
     List<Complaint> findComplaintsByDepartmentAndCity(String department, String city);
     boolean existsByComplaintId(String complaintId);
 }

@@ -85,10 +85,10 @@ public class  WebSecurityConfiguration {
         // --- CORS FIX REAL ---
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("http://localhost:4200")); // <-- FRONTEND ANGULAR
+            cors.setAllowedOrigins(List.of("http://localhost:4200"));
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
             cors.setAllowedHeaders(List.of("*"));
-            cors.setAllowCredentials(true); // Necesario para JWT
+            cors.setAllowCredentials(true);
             return cors;
         }));
 
@@ -100,12 +100,10 @@ public class  WebSecurityConfiguration {
                 configurer.authenticationEntryPoint(unauthorizedRequestHandlerEntryPoint)
         );
 
-        // No sesiones
         http.sessionManagement(configurer ->
                 configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
 
-        // Rutas públicas
         http.authorizeHttpRequests(configurer ->
                 configurer.requestMatchers(permittedRequestPatterns).permitAll()
                         .anyRequest().authenticated()

@@ -30,13 +30,11 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
     @Override
     public Complaint handle(CreateComplaintCommand command) {
-        // Validaciones de negocio
         validateCreateCommand(command);
 
         Complaint complaint = new Complaint(command);
         Complaint savedComplaint = complaintRepository.save(complaint);
 
-        // Publicar evento
         eventPublisher.publishComplaintCreatedEvent(new ComplaintCreatedEvent(savedComplaint));
 
         return savedComplaint;
@@ -47,7 +45,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
-        // Validar que el complaint puede ser actualizado
         validateComplaintForUpdate(complaint);
 
         complaint.updateComplaint(command);
@@ -85,8 +82,7 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
             throw new InvalidComplaintStatusException("Cannot assign a rejected complaint");
         }
 
-        // Usar un valor por defecto si responsibleId no está disponible
-        String responsibleId = command.assignedTo(); // o algún valor por defecto
+        String responsibleId = command.assignedTo();
         complaint.assignTo(command.assignedTo(), responsibleId);
         Complaint assignedComplaint = complaintRepository.save(complaint);
 
@@ -100,11 +96,9 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
-        // ELIMINAR COMPLETAMENTE cualquier validación de estado
-        // Solo log para auditoría
+
         System.out.println("Deleting complaint with id: " + command.complaintId() + " and status: " + complaint.getStatus());
 
-        // Eliminación física del registro
         complaintRepository.delete(complaint);
 
         eventPublisher.publishComplaintDeletedEvent(new ComplaintDeletedEvent(complaint));

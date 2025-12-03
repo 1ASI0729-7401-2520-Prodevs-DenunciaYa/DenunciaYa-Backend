@@ -10,7 +10,6 @@ public interface ComplaintCommandService {
     Complaint handle(AssignComplaintCommand command);
     void handle(DeleteComplaintCommand command);
 
-    // Métodos adicionales para operaciones específicas
     void addEvidence(String complaintId, String evidenceUrl);
     void updatePriority(String complaintId, String priority);
     void assignComplaint(String complaintId, String assignedTo, String responsibleId);

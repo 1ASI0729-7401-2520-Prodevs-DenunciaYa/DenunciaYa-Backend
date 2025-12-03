@@ -33,7 +33,7 @@ public interface ResponsibleQueryService {
      * Returned to the frontend.
      */
     record ResponsibleService(
-            Long id, // Cambiado de Long a String
+            Long id,
             String firstName,
             String lastName,
             String fullName,

@@ -13,7 +13,7 @@ public class ComplaintDeletedEvent {
     }
 
     public String getComplaintId() {
-        return complaint.getComplaintId(); // Cambiado a getComplaintId()
+        return complaint.getComplaintId();
     }
 
 
