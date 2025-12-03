@@ -4,21 +4,22 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Immutable;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity(name = "MapComplaint")
-@Table(name = "map_complaints")
+@Table(name = "complaints")
+@Immutable
 public class MapComplaint {
 
     @Id
+    @Column(name = "complaint_id")
     private String id;
 
-    @Column(name = "title")
+    @Column(name = "description")
     private String title;
 
     @Column(name = "category")
@@ -30,10 +31,6 @@ public class MapComplaint {
     @Column(name = "status")
     private String status;
 
-    @Column(name = "latitude")
-    private double latitude;
-
-    @Column(name = "longitude")
-    private double longitude;
-
+    @Column(name = "location")
+    private String location;
 }
