@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "complaint_timeline")
+@Table(name = "complaint_timelines")
 public class TimelineItem extends AuditableModel {
 
     @Id

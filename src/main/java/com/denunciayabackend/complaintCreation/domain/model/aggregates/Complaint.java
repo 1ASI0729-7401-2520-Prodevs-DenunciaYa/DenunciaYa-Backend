@@ -57,7 +57,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     private ComplaintPriority priority = ComplaintPriority.STANDARD;
 
     @ElementCollection
-    @CollectionTable(name = "complaint_evidence", joinColumns = @JoinColumn(name = "complaint_id"))
+    @CollectionTable(name = "complaint_evidences", joinColumns = @JoinColumn(name = "complaint_id"))
     @Column(name = "evidence_url")
     private List<String> evidence = new ArrayList<>();
 
