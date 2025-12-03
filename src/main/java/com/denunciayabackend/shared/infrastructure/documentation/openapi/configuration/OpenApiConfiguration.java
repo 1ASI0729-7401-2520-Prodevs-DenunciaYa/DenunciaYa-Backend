@@ -38,8 +38,8 @@ public class OpenApiConfiguration {
                         .license(new License().name("Apache 2.0")
                                 .url("https://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("ACme Learning Platform wiki Documentation")
-                        .url("https://acme-learning-platform.wiki.github.io/docs"));
+                        .description("DenunciaYa Platform wiki Documentation")
+                        .url("https://denunciaya-platform.wiki.github.io/docs"));
 
         // Add a security scheme
 
