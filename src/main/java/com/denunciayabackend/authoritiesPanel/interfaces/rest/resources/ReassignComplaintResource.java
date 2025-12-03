@@ -1,15 +1,11 @@
-package com.denunciayabackend.authoritiesPanel.domain.model.commands;
+package com.denunciayabackend.authoritiesPanel.interfaces.rest.resources;
 
-public record ReassignComplaintCommand(
-        String assignmentId,
+public record ReassignComplaintResource(
         String newResponsibleId,
         String reassignedBy,
         String notes
 ) {
-    public ReassignComplaintCommand {
-        if (assignmentId == null || assignmentId.isBlank()) {
-            throw new IllegalArgumentException("Assignment ID cannot be null or blank");
-        }
+    public ReassignComplaintResource {
         if (newResponsibleId == null || newResponsibleId.isBlank()) {
             throw new IllegalArgumentException("New responsible ID cannot be null or blank");
         }

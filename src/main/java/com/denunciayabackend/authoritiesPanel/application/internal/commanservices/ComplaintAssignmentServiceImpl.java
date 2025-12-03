@@ -6,87 +6,99 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.Assignme
 import com.denunciayabackend.authoritiesPanel.domain.services.ComplaintAssignmentService;
 import com.denunciayabackend.authoritiesPanel.infrastructure.persistence.jpa.repositories.ComplaintAssignmentRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@Transactional
 public class ComplaintAssignmentServiceImpl implements ComplaintAssignmentService {
 
-    private final ComplaintAssignmentRepository assignmentRepository;
+    private final ComplaintAssignmentRepository complaintAssignmentRepository;
 
-    public ComplaintAssignmentServiceImpl(ComplaintAssignmentRepository assignmentRepository) {
-        this.assignmentRepository = assignmentRepository;
+    public ComplaintAssignmentServiceImpl(ComplaintAssignmentRepository complaintAssignmentRepository) {
+        this.complaintAssignmentRepository = complaintAssignmentRepository;
     }
 
     @Override
-    public String handle(AssignComplaintCommand command) {
-        // Validar que no exista una asignación activa para esta denuncia
-        assignmentRepository.findActiveAssignmentByComplaintId(command.complaintId())
-                .ifPresent(assignment -> {
-                    assignment.updateStatus(AssignmentStatus.REASSIGNED);
-                    assignmentRepository.save(assignment);
-                });
+    public ComplaintAssignment handle(AssignComplaintCommand command) {
+        // Validar que la denuncia no esté ya asignada activamente
+        if (isComplaintAlreadyAssigned(command.complaintId())) {
+            throw new IllegalStateException("La denuncia ya está asignada a otro responsable");
+        }
 
         // Crear nueva asignación
-        var assignment = new ComplaintAssignment(
+        ComplaintAssignment assignment = ComplaintAssignment.create(
                 command.complaintId(),
                 command.responsibleId(),
                 command.assignedBy(),
-                AssignmentStatus.ACTIVE
+                command.notes()
         );
 
-        assignmentRepository.save(assignment);
-        return assignment.getId().toString();
+        // Guardar en repositorio
+        return complaintAssignmentRepository.save(assignment);
     }
 
     @Override
-    public void handle(ReassignComplaintCommand command) {
-        var assignment = assignmentRepository.findById(Long.valueOf(command.assignmentId()))
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found with id: " + command.assignmentId()));
+    public ComplaintAssignment handle(UpdateAssignmentStatusCommand command) {
+        // Buscar asignación
+        ComplaintAssignment assignment = complaintAssignmentRepository.findById(command.assignmentId())
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la asignación con ID: " + command.assignmentId()));
 
-        assignment.reassign(command.newResponsibleId(), command.assignedBy());
-        assignmentRepository.save(assignment);
+        // Actualizar estado
+        assignment.updateStatus(command.status(), command.notes());
+
+        return complaintAssignmentRepository.save(assignment);
     }
 
     @Override
-    public void handle(UpdateAssignmentStatusCommand command) {
-        var assignment = assignmentRepository.findById(Long.valueOf(command.assignmentId()))
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found with id: " + command.assignmentId()));
+    public ComplaintAssignment handle(ReassignComplaintCommand command) {
+        // Buscar asignación
+        ComplaintAssignment assignment = complaintAssignmentRepository.findById(command.assignmentId())
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la asignación con ID: " + command.assignmentId()));
 
-        assignment.updateStatus(command.newStatus());
-        assignmentRepository.save(assignment);
+        // Validar que la asignación esté activa
+        if (!assignment.isActive()) {
+            throw new IllegalStateException("No se puede reasignar una asignación inactiva");
+        }
+
+        // Reasignar
+        assignment.reassign(command.newResponsibleId(), command.reassignedBy(), command.notes());
+
+        return complaintAssignmentRepository.save(assignment);
     }
 
     @Override
-    public List<ComplaintAssignment> getActiveAssignmentsByResponsible(String responsibleId) {
-        return assignmentRepository.findByResponsibleIdAndStatus(responsibleId, AssignmentStatus.ACTIVE);
+    public Optional<ComplaintAssignment> getAssignmentById(String id) {
+        return complaintAssignmentRepository.findById(id);
     }
 
     @Override
-    public long getActiveComplaintsCountByResponsible(String responsibleId) {
-        return assignmentRepository.countByResponsibleIdAndStatus(responsibleId, AssignmentStatus.ACTIVE);
+    public Optional<ComplaintAssignment> getActiveAssignmentByComplaintId(String complaintId) {
+        return complaintAssignmentRepository.findByComplaintIdAndStatus(complaintId, AssignmentStatus.ACTIVE);
     }
 
     @Override
     public List<ComplaintAssignment> getAssignmentHistoryByComplaint(String complaintId) {
-        return assignmentRepository.findByComplaintId(complaintId);
+        return complaintAssignmentRepository.findByComplaintIdOrderByAssignedDateDesc(complaintId);
     }
 
     @Override
-    public ComplaintAssignment getAssignmentById(Long assignmentId) {
-        return assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found with id: " + assignmentId));
+    public List<ComplaintAssignment> getActiveAssignmentsByResponsible(String responsibleId) {
+        return complaintAssignmentRepository.findByResponsibleIdAndStatus(responsibleId, AssignmentStatus.ACTIVE);
     }
 
     @Override
-    public String handle(CreateComplaintAssignmentCommand command) {
-        return "";
+    public List<ComplaintAssignment> getAllAssignmentsByResponsible(String responsibleId) {
+        return complaintAssignmentRepository.findByResponsibleIdOrderByAssignedDateDesc(responsibleId);
     }
 
     @Override
-    public String handle(com.denunciayabackend.complaintCreation.domain.model.commands.AssignComplaintCommand command) {
-        return "";
+    public long countActiveAssignmentsByResponsible(String responsibleId) {
+        return complaintAssignmentRepository.countByResponsibleIdAndStatus(responsibleId, AssignmentStatus.ACTIVE);
+    }
+
+    @Override
+    public boolean isComplaintAlreadyAssigned(String complaintId) {
+        return complaintAssignmentRepository.existsActiveAssignmentForComplaint(complaintId);
     }
 }

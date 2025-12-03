@@ -1,48 +1,40 @@
 package com.denunciayabackend.authoritiesPanel.domain.services;
 
-
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.AssignComplaintCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.CreateComplaintAssignmentCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.ReassignComplaintCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.UpdateAssignmentStatusCommand;
+import com.denunciayabackend.authoritiesPanel.domain.model.commands.*;
 import com.denunciayabackend.authoritiesPanel.domain.model.entities.ComplaintAssignment;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ComplaintAssignmentService {
 
-    /**
-     * Assign a complaint to a responsible
-     */
-    String handle(AssignComplaintCommand command);
+    // Crear nueva asignación
+    ComplaintAssignment handle(AssignComplaintCommand command);
 
-    /**
-     * Reassign a complaint to a different responsible
-     */
-    void handle(ReassignComplaintCommand command);
+    // Actualizar estado de asignación
+    ComplaintAssignment handle(UpdateAssignmentStatusCommand command);
 
-    /**
-     * Update the status of an assignment
-     */
-    void handle(UpdateAssignmentStatusCommand command);
+    // Reasignar denuncia
+    ComplaintAssignment handle(ReassignComplaintCommand command);
 
-    /**
-     * Get active assignments for a responsible
-     */
+    // Obtener asignación por ID
+    Optional<ComplaintAssignment> getAssignmentById(String id);
+
+    // Obtener asignación activa de una denuncia
+    Optional<ComplaintAssignment> getActiveAssignmentByComplaintId(String complaintId);
+
+    // Obtener historial de asignaciones de una denuncia
+    List<ComplaintAssignment> getAssignmentHistoryByComplaint(String complaintId);
+
+    // Obtener asignaciones activas por responsable
     List<ComplaintAssignment> getActiveAssignmentsByResponsible(String responsibleId);
 
-    /**
-     * Get count of active complaints for a responsible
-     */
-    long getActiveComplaintsCountByResponsible(String responsibleId);
+    // Obtener todas las asignaciones de un responsable
+    List<ComplaintAssignment> getAllAssignmentsByResponsible(String responsibleId);
 
-    /**
-     * Get assignment history for a complaint
-     */
-    List<ComplaintAssignment> getAssignmentHistoryByComplaint(String complaintId);
-    ComplaintAssignment getAssignmentById(Long assignmentId);
+    // Contar denuncias activas por responsable
+    long countActiveAssignmentsByResponsible(String responsibleId);
 
-    String handle(CreateComplaintAssignmentCommand command);
-
-    String handle(com.denunciayabackend.complaintCreation.domain.model.commands.AssignComplaintCommand command);
+    // Verificar si una denuncia ya está asignada
+    boolean isComplaintAlreadyAssigned(String complaintId);
 }

@@ -4,14 +4,15 @@ import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.Assignme
 
 public record UpdateAssignmentStatusCommand(
         String assignmentId,
-        AssignmentStatus newStatus
+        AssignmentStatus status,
+        String notes
 ) {
     public UpdateAssignmentStatusCommand {
         if (assignmentId == null || assignmentId.isBlank()) {
-            throw new IllegalArgumentException("AssignmentId cannot be null or blank");
+            throw new IllegalArgumentException("Assignment ID cannot be null or blank");
         }
-        if (newStatus == null) {
-            throw new IllegalArgumentException("NewStatus cannot be null");
+        if (status == null) {
+            throw new IllegalArgumentException("Status cannot be null");
         }
     }
 }

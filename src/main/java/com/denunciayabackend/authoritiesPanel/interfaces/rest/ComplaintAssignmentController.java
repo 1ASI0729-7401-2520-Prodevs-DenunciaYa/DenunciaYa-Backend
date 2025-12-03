@@ -1,22 +1,16 @@
 package com.denunciayabackend.authoritiesPanel.interfaces.rest;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.AssignComplaintCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.ReassignComplaintCommand;
-import com.denunciayabackend.authoritiesPanel.domain.model.entities.ComplaintAssignment;
+
 import com.denunciayabackend.authoritiesPanel.domain.services.ComplaintAssignmentService;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.ComplaintAssignmentResource;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.CreateComplaintAssignmentResource;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.UpdateComplaintAssignmentResource;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.transform.ComplaintAssignmentResourceAssembler;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.transform.CreateComplaintAssignmentCommandFromResourceAssembler;
-import com.denunciayabackend.authoritiesPanel.interfaces.rest.transform.UpdateComplaintAssignmentCommandFromResourceAssembler;
+import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.*;
+import com.denunciayabackend.authoritiesPanel.interfaces.rest.transform.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.CREATED;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/complaint-assignments")
@@ -30,91 +24,109 @@ public class ComplaintAssignmentController {
     }
 
     @PostMapping
-    @Operation(summary = "Assign complaint to responsible")
+    @Operation(summary = "Assign a complaint to a responsible person")
     public ResponseEntity<ComplaintAssignmentResource> assignComplaint(
             @RequestBody CreateComplaintAssignmentResource resource) {
 
-        var command = CreateComplaintAssignmentCommandFromResourceAssembler.toCommand(resource);
-        String assignmentId = assignmentService.handle(command);
+        var command = ComplaintAssignmentCommandAssembler.toAssignCommandFromResource(resource);
+        var assignment = assignmentService.handle(command);
 
-        ComplaintAssignment assignment = assignmentService.getAssignmentById(Long.valueOf(assignmentId));
-        ComplaintAssignmentResource response = ComplaintAssignmentResourceAssembler.toResourceFromEntity(assignment);
-
-        return new ResponseEntity<>(response, CREATED);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ComplaintAssignmentResource.fromEntity(assignment));
     }
 
-    @PutMapping("/{assignmentId}/reassign")
-    @Operation(summary = "Reassign complaint to different responsible")
-    public ResponseEntity<ComplaintAssignmentResource> reassignComplaint(
-            @PathVariable String assignmentId,
-            @RequestBody ReassignComplaintCommand command) {
-
-        assignmentService.handle(command);
-
-        // Obtener la asignación actualizada
-        ComplaintAssignment assignment = assignmentService.getAssignmentById(Long.valueOf(assignmentId));
-        ComplaintAssignmentResource response = ComplaintAssignmentResourceAssembler.toResourceFromEntity(assignment);
-
-        return ResponseEntity.ok(response);
+    @GetMapping("/{id}")
+    @Operation(summary = "Get assignment by ID")
+    public ResponseEntity<ComplaintAssignmentResource> getAssignmentById(@PathVariable String id) {
+        return assignmentService.getAssignmentById(id)
+                .map(assignment -> ResponseEntity.ok(ComplaintAssignmentResource.fromEntity(assignment)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{assignmentId}/status")
-    @Operation(summary = "Update assignment status")
-    public ResponseEntity<ComplaintAssignmentResource> updateAssignmentStatus(
-            @PathVariable String assignmentId,
-            @RequestBody UpdateComplaintAssignmentResource resource) {
+    @GetMapping("/complaint/{complaintId}/active")
+    @Operation(summary = "Get active assignment for a complaint")
+    public ResponseEntity<ComplaintAssignmentResource> getActiveAssignmentByComplaint(
+            @PathVariable String complaintId) {
 
-        var command = UpdateComplaintAssignmentCommandFromResourceAssembler.toCommand(assignmentId, resource);
-        assignmentService.handle(command);
-
-        // Obtener la asignación actualizada
-        ComplaintAssignment assignment = assignmentService.getAssignmentById(Long.valueOf(assignmentId));
-        ComplaintAssignmentResource response = ComplaintAssignmentResourceAssembler.toResourceFromEntity(assignment);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/responsible/{responsibleId}/active")
-    @Operation(summary = "Get active assignments for responsible")
-    public ResponseEntity<List<ComplaintAssignmentResource>> getActiveAssignments(
-            @PathVariable String responsibleId) {
-
-        List<ComplaintAssignment> assignments = assignmentService.getActiveAssignmentsByResponsible(responsibleId);
-        List<ComplaintAssignmentResource> resources =
-                ComplaintAssignmentResourceAssembler.toResourceListFromEntities(assignments);
-
-        return ResponseEntity.ok(resources);
+        return assignmentService.getActiveAssignmentByComplaintId(complaintId)
+                .map(assignment -> ResponseEntity.ok(ComplaintAssignmentResource.fromEntity(assignment)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/complaint/{complaintId}/history")
-    @Operation(summary = "Get assignment history for complaint")
+    @Operation(summary = "Get assignment history for a complaint")
     public ResponseEntity<List<ComplaintAssignmentResource>> getAssignmentHistory(
             @PathVariable String complaintId) {
 
-        List<ComplaintAssignment> history = assignmentService.getAssignmentHistoryByComplaint(complaintId);
-        List<ComplaintAssignmentResource> resources =
-                ComplaintAssignmentResourceAssembler.toResourceListFromEntities(history);
+        var assignments = assignmentService.getAssignmentHistoryByComplaint(complaintId);
+        var resources = assignments.stream()
+                .map(ComplaintAssignmentResource::fromEntity)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(resources);
     }
 
-    @GetMapping("/responsible/{responsibleId}/count")
-    @Operation(summary = "Get active complaints count for responsible")
-    public ResponseEntity<Long> getActiveComplaintsCount(
+    @GetMapping("/responsible/{responsibleId}/active")
+    @Operation(summary = "Get active assignments for a responsible person")
+    public ResponseEntity<List<ComplaintAssignmentResource>> getActiveAssignmentsByResponsible(
             @PathVariable String responsibleId) {
 
-        long count = assignmentService.getActiveComplaintsCountByResponsible(responsibleId);
+        var assignments = assignmentService.getActiveAssignmentsByResponsible(responsibleId);
+        var resources = assignments.stream()
+                .map(ComplaintAssignmentResource::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resources);
+    }
+
+    @PutMapping("/{id}/status")
+    @Operation(summary = "Update assignment status")
+    public ResponseEntity<ComplaintAssignmentResource> updateAssignmentStatus(
+            @PathVariable String id,
+            @RequestBody UpdateComplaintAssignmentResource resource) {
+
+        var command = UpdateAssignmentCommandAssembler.toCommandFromResource(id, resource);
+        var assignment = assignmentService.handle(command);
+
+        return ResponseEntity.ok(ComplaintAssignmentResource.fromEntity(assignment));
+    }
+
+    @PutMapping("/{id}/reassign")
+    @Operation(summary = "Reassign complaint to another responsible")
+    public ResponseEntity<ComplaintAssignmentResource> reassignComplaint(
+            @PathVariable String id,
+            @RequestBody ReassignComplaintResource resource) {
+
+        var command = ReassignCommandAssembler.toCommandFromResource(id, resource);
+        var assignment = assignmentService.handle(command);
+
+        return ResponseEntity.ok(ComplaintAssignmentResource.fromEntity(assignment));
+    }
+
+    @GetMapping("/complaint/{complaintId}/is-assigned")
+    @Operation(summary = "Check if a complaint is already assigned")
+    public ResponseEntity<Boolean> isComplaintAlreadyAssigned(@PathVariable String complaintId) {
+        var isAssigned = assignmentService.isComplaintAlreadyAssigned(complaintId);
+        return ResponseEntity.ok(isAssigned);
+    }
+
+    @GetMapping("/responsible/{responsibleId}/count")
+    @Operation(summary = "Count active assignments for a responsible person")
+    public ResponseEntity<Long> countActiveAssignmentsByResponsible(
+            @PathVariable String responsibleId) {
+
+        var count = assignmentService.countActiveAssignmentsByResponsible(responsibleId);
         return ResponseEntity.ok(count);
     }
 
-    @GetMapping("/{assignmentId}")
-    @Operation(summary = "Get assignment by ID")
-    public ResponseEntity<ComplaintAssignmentResource> getAssignmentById(
-            @PathVariable Long assignmentId) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
 
-        ComplaintAssignment assignment = assignmentService.getAssignmentById(assignmentId);
-        ComplaintAssignmentResource resource = ComplaintAssignmentResourceAssembler.toResourceFromEntity(assignment);
-
-        return ResponseEntity.ok(resource);
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }
