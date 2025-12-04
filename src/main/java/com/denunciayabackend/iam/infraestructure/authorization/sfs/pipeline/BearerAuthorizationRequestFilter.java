@@ -39,6 +39,13 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // Skip authorization for preflight OPTIONS requests so the browser CORS preflight isn't blocked
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            LOGGER.debug("Skipping auth filter for preflight OPTIONS request");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             var token = tokenService.getBearerTokenFrom(request);
             LOGGER.info("Token: {}", token);
@@ -48,6 +55,23 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request));
             } else {
                 LOGGER.warn("Token is not valid");
+                // Si el token es null, loguear todos los headers para diagnosticar por qué no llega el Authorization
+                if (token == null) {
+                    try {
+                        var headerNames = request.getHeaderNames();
+                        if (headerNames != null) {
+                            LOGGER.debug("Request headers:");
+                            while (headerNames.hasMoreElements()) {
+                                var name = headerNames.nextElement();
+                                LOGGER.debug("{}: {}", name, request.getHeader(name));
+                            }
+                        } else {
+                            LOGGER.debug("No header names available (null). This could be a preflight OPTIONS or container filtering headers.");
+                        }
+                    } catch (Exception e) {
+                        LOGGER.warn("Could not read request headers for debugging: {}", e.getMessage());
+                    }
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Cannot set user authentication: {}", e.getMessage());

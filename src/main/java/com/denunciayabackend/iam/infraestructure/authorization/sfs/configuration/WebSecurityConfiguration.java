@@ -7,6 +7,7 @@ import com.denunciayabackend.iam.infraestructure.token.jwt.BearerTokenService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -79,16 +80,19 @@ public class  WebSecurityConfiguration {
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/swagger-resources/**",
-                "/webjars/**"
+                "/webjars/**",
+                "/uploads/**"
         };
 
         // --- CORS FIX REAL ---
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("http://localhost:4200"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+            cors.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             cors.setAllowedHeaders(List.of("*"));
+            cors.setExposedHeaders(List.of("Authorization"));
             cors.setAllowCredentials(true);
+            cors.setMaxAge(3600L);
             return cors;
         }));
 
@@ -105,7 +109,8 @@ public class  WebSecurityConfiguration {
         );
 
         http.authorizeHttpRequests(configurer ->
-                configurer.requestMatchers(permittedRequestPatterns).permitAll()
+                configurer.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(permittedRequestPatterns).permitAll()
                         .anyRequest().authenticated()
         );
 
