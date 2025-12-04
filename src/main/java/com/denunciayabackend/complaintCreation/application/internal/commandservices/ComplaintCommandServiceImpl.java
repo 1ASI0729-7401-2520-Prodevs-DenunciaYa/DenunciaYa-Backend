@@ -5,16 +5,19 @@ import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintValida
 import com.denunciayabackend.complaintCreation.domain.exceptions.InvalidComplaintStatusException;
 import com.denunciayabackend.complaintCreation.domain.model.aggregates.Complaint;
 import com.denunciayabackend.complaintCreation.domain.model.commands.*;
+import com.denunciayabackend.complaintCreation.domain.model.entities.Evidence;
 import com.denunciayabackend.complaintCreation.domain.model.events.*;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 import com.denunciayabackend.complaintCreation.domain.services.ComplaintCommandService;
+import com.denunciayabackend.complaintCreation.domain.services.EvidenceService;
 import com.denunciayabackend.complaintCreation.infrastructure.persistence.jpa.repositories.ComplaintRepository;
 import com.denunciayabackend.complaintCreation.interfaces.ComplaintEventPublisher;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @Transactional
@@ -22,10 +25,14 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
     private final ComplaintRepository complaintRepository;
     private final ComplaintEventPublisher eventPublisher;
+    private final EvidenceService evidenceService;
 
-    public ComplaintCommandServiceImpl(ComplaintRepository complaintRepository, ComplaintEventPublisher eventPublisher) {
+    public ComplaintCommandServiceImpl(ComplaintRepository complaintRepository,
+                                       ComplaintEventPublisher eventPublisher,
+                                       EvidenceService evidenceService) {
         this.complaintRepository = complaintRepository;
         this.eventPublisher = eventPublisher;
+        this.evidenceService = evidenceService;
     }
 
     @Override
@@ -33,10 +40,22 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         validateCreateCommand(command);
 
         Complaint complaint = new Complaint(command);
+
+        // Guardar la denuncia primero
         Complaint savedComplaint = complaintRepository.save(complaint);
 
-        eventPublisher.publishComplaintCreatedEvent(new ComplaintCreatedEvent(savedComplaint));
+        // Guardar evidencias si existen
+        if (command.evidence() != null && !command.evidence().isEmpty()) {
+            List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
+                    savedComplaint.getComplaintId(),
+                    command.evidence()
+            );
+            savedComplaint.setEvidences(evidences);
+            savedComplaint.addEvidence(command.evidence());
+            savedComplaint = complaintRepository.save(savedComplaint);
+        }
 
+        eventPublisher.publishComplaintCreatedEvent(new ComplaintCreatedEvent(savedComplaint));
         return savedComplaint;
     }
 
@@ -48,10 +67,25 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         validateComplaintForUpdate(complaint);
 
         complaint.updateComplaint(command);
+
+        // Actualizar evidencias si se proporcionan
+        if (command.evidence() != null) {
+            // Eliminar evidencias existentes
+            evidenceService.deleteEvidencesByComplaintId(command.complaintId());
+
+            // Guardar nuevas evidencias
+            if (!command.evidence().isEmpty()) {
+                List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
+                        command.complaintId(),
+                        command.evidence()
+                );
+                complaint.setEvidences(evidences);
+                complaint.addEvidence(command.evidence());
+            }
+        }
+
         Complaint updatedComplaint = complaintRepository.save(complaint);
-
         eventPublisher.publishComplaintUpdatedEvent(new ComplaintUpdatedEvent(updatedComplaint));
-
         return updatedComplaint;
     }
 
@@ -61,7 +95,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
         ComplaintStatus previousStatus = complaint.getStatus();
-
         validateStatusTransition(complaint.getStatus(), command.newStatus());
 
         complaint.updateStatus(command.newStatus(), command.updateMessage());
@@ -69,7 +102,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         eventPublisher.publishComplaintStatusUpdatedEvent(
                 new ComplaintStatusUpdatedEvent(updatedComplaint, previousStatus, command.updateMessage()));
-
         return updatedComplaint;
     }
 
@@ -87,7 +119,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint assignedComplaint = complaintRepository.save(complaint);
 
         eventPublisher.publishComplaintAssignedEvent(new ComplaintAssignedEvent(assignedComplaint));
-
         return assignedComplaint;
     }
 
@@ -96,11 +127,13 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
-
         System.out.println("Deleting complaint with id: " + command.complaintId() + " and status: " + complaint.getStatus());
 
-        complaintRepository.delete(complaint);
+        // Eliminar evidencias primero
+        evidenceService.deleteEvidencesByComplaintId(command.complaintId());
 
+        // Eliminar la denuncia
+        complaintRepository.delete(complaint);
         eventPublisher.publishComplaintDeletedEvent(new ComplaintDeletedEvent(complaint));
     }
 
@@ -109,6 +142,14 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(complaintId)
                 .orElseThrow(() -> new ComplaintNotFoundException(complaintId));
 
+        // Guardar evidencia
+        List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
+                complaintId,
+                Collections.singletonList(evidenceUrl)
+        );
+
+        // Actualizar la queja con la nueva evidencia
+        complaint.getEvidences().addAll(evidences);
         complaint.addEvidence(Collections.singletonList(evidenceUrl));
         complaintRepository.save(complaint);
     }

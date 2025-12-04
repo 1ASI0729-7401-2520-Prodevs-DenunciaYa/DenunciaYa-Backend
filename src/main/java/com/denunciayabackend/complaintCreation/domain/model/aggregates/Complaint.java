@@ -1,7 +1,13 @@
 package com.denunciayabackend.complaintCreation.domain.model.aggregates;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.denunciayabackend.complaintCreation.domain.model.commands.CreateComplaintCommand;
 import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.entities.Evidence;
 import com.denunciayabackend.complaintCreation.domain.model.entities.TimelineItem;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintId;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
@@ -10,9 +16,21 @@ import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAgg
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity(name = "ComplaintCreation")
 @Table(name = "complaints")
@@ -59,10 +77,8 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     @Column(nullable = false)
     private ComplaintPriority priority = ComplaintPriority.STANDARD;
 
-    @ElementCollection
-    @CollectionTable(name = "complaint_evidences", joinColumns = @JoinColumn(name = "complaint_id"))
-    @Column(name = "evidence_url")
-    private List<String> evidence;
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Evidence> evidences = new ArrayList<>();
 
     private String assignedTo;
 
@@ -87,6 +103,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         this.description = command.description();
         this.priority = command.priority() != null ? command.priority() : ComplaintPriority.STANDARD;
         this.status = ComplaintStatus.PENDING;
+        this.evidences = new ArrayList<>();
 
         addTimelineItem("Complaint registered", "Complaint successfully registered in the system");
     }
@@ -118,11 +135,34 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     }
 
     public void addEvidence(List<String> evidenceUrls) {
-        if (evidenceUrls != null) {
-            this.evidence.addAll(evidenceUrls);
+        if (evidenceUrls != null && !evidenceUrls.isEmpty()) {
+            for (String url : evidenceUrls) {
+                if (!isUrlAlreadyAdded(url)) {
+                    Evidence evidence = new Evidence(this.getComplaintId(), url);
+                    this.evidences.add(evidence);
+                }
+            }
+            addTimelineItem("Evidence added", "New evidence attached to complaint");
         }
     }
+    private boolean isUrlAlreadyAdded(String url) {
+        return this.evidences.stream()
+                .anyMatch(evidence -> evidence.getUrl().equals(url));
+    }
 
+    public List<String> getEvidence() {
+        return evidences.stream()
+                .map(Evidence::getUrl)
+                .collect(Collectors.toList());
+    }
+
+    public List<Evidence> getEvidences() {
+        return Collections.unmodifiableList(evidences);
+    }
+
+    public void setEvidences(List<Evidence> evidences) {
+        this.evidences = new ArrayList<>(evidences);
+    }
     public void updatePriority(ComplaintPriority priority) {
         this.priority = priority;
         addTimelineItem("Priority updated to " + priority, "Complaint priority changed");
@@ -179,9 +219,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.district;
     }
 
-    public List<String> getEvidence() {
-        return evidence != null ? evidence : List.of(); // Devuelve una lista vacía si es null
-    }
+
 
     public String getLocation() {
         return this.location;
@@ -255,9 +293,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         this.priority = priority;
     }
 
-    public void setEvidence(List<String> evidence) {
-        this.evidence = evidence;
-    }
+
     public String getAssignedTo() {
         return assignedTo;
     }
