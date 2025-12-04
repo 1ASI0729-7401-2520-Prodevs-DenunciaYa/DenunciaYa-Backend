@@ -1,20 +1,31 @@
 package com.denunciayabackend.complaintCreation.interfaces;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintNotFoundException;
 import com.denunciayabackend.complaintCreation.domain.model.commands.DeleteComplaintCommand;
 import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintStatusCommand;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 import com.denunciayabackend.complaintCreation.domain.services.ComplaintCommandService;
 import com.denunciayabackend.complaintCreation.domain.services.ComplaintQueryService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/complaints")
@@ -170,6 +181,104 @@ public class ComplaintResourceController {
         return ResponseEntity.ok(resource);
     }
 
+        @Operation(summary = "Advance complaint timeline", description = "Advance the complaint to the next timeline item")
+        @PatchMapping("/{complaintId}/timeline/advance")
+        public ResponseEntity<ComplaintResource> advanceTimeline(@PathVariable String complaintId) {
+                var complaint = complaintCommandService.handle(new com.denunciayabackend.complaintCreation.domain.model.commands.AdvanceTimelineCommand(complaintId));
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Accept decision on complaint", description = "Accept a decision waiting in the timeline")
+        @PatchMapping("/{complaintId}/timeline/accept")
+        public ResponseEntity<ComplaintResource> acceptTimelineDecision(@PathVariable String complaintId) {
+                var complaint = complaintCommandService.handle(new com.denunciayabackend.complaintCreation.domain.model.commands.AcceptDecisionCommand(complaintId));
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Reject decision on complaint", description = "Reject a decision waiting in the timeline")
+        @PatchMapping("/{complaintId}/timeline/reject")
+        public ResponseEntity<ComplaintResource> rejectTimelineDecision(@PathVariable String complaintId) {
+                var complaint = complaintCommandService.handle(new com.denunciayabackend.complaintCreation.domain.model.commands.RejectDecisionCommand(complaintId));
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Update specific timeline item", description = "Update flags or message of a specific timeline item")
+        @PatchMapping("/{complaintId}/timeline/item")
+        public ResponseEntity<ComplaintResource> updateTimelineItem(@PathVariable String complaintId,
+                                                                                                                                @RequestBody UpdateTimelineItemRequest request) {
+                var command = new com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand(
+                                complaintId,
+                                request.timelineItemId(),
+                                request.completed(),
+                                request.current(),
+                                request.waitingDecision(),
+                                request.status(),
+                                request.updateMessage()
+                );
+                var complaint = complaintCommandService.handle(command);
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Update timeline item by id", description = "Update a specific timeline item using its id")
+        @PutMapping("/{complaintId}/timeline/{timelineItemId}")
+        public ResponseEntity<ComplaintResource> putTimelineItemById(@PathVariable String complaintId,
+                                                                      @PathVariable Long timelineItemId,
+                                                                      @RequestBody UpdateTimelineItemRequest request) {
+                var command = new com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand(
+                                complaintId,
+                                timelineItemId,
+                                request.completed(),
+                                request.current(),
+                                request.waitingDecision(),
+                                request.status(),
+                                request.updateMessage()
+                );
+                var complaint = complaintCommandService.handle(command);
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Accept timeline item by id", description = "Accept a timeline item decision by id")
+        @PutMapping("/{complaintId}/timeline/{timelineItemId}/accept")
+        public ResponseEntity<ComplaintResource> putAcceptTimelineItemById(@PathVariable String complaintId,
+                                                                            @PathVariable Long timelineItemId) {
+                // mark the specified timeline item as accepted
+                var commandUpdate = new com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand(
+                                complaintId,
+                                timelineItemId,
+                                true,
+                                false,
+                                false,
+                                "Accepted",
+                                "Decision accepted"
+                );
+                var complaint = complaintCommandService.handle(commandUpdate);
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
+        @Operation(summary = "Reject timeline item by id", description = "Reject a timeline item decision by id")
+        @PutMapping("/{complaintId}/timeline/{timelineItemId}/reject")
+        public ResponseEntity<ComplaintResource> putRejectTimelineItemById(@PathVariable String complaintId,
+                                                                            @PathVariable Long timelineItemId) {
+                var commandUpdate = new com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand(
+                                complaintId,
+                                timelineItemId,
+                                true,
+                                true,
+                                false,
+                                "Rejected",
+                                "Decision rejected"
+                );
+                var complaint = complaintCommandService.handle(commandUpdate);
+                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+                return ResponseEntity.ok(resource);
+        }
+
     @Operation(summary = "Get complaints by location", description = "Returns complaints filtered by department and city")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of complaints"),
@@ -191,3 +300,5 @@ public class ComplaintResourceController {
 }
 
 record UpdateComplaintStatusRequest(String status, String updateMessage) { }
+
+record UpdateTimelineItemRequest(Long timelineItemId, Boolean completed, Boolean current, Boolean waitingDecision, String status, String updateMessage) { }

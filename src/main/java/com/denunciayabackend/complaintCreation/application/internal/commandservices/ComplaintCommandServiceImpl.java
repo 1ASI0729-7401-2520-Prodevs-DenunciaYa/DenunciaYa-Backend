@@ -1,23 +1,33 @@
 package com.denunciayabackend.complaintCreation.application.internal.commandservices;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintNotFoundException;
 import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintValidationException;
 import com.denunciayabackend.complaintCreation.domain.exceptions.InvalidComplaintStatusException;
 import com.denunciayabackend.complaintCreation.domain.model.aggregates.Complaint;
-import com.denunciayabackend.complaintCreation.domain.model.commands.*;
+import com.denunciayabackend.complaintCreation.domain.model.commands.AssignComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.CreateComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.DeleteComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintStatusCommand;
 import com.denunciayabackend.complaintCreation.domain.model.entities.Evidence;
-import com.denunciayabackend.complaintCreation.domain.model.events.*;
+import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintAssignedEvent;
+import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintCreatedEvent;
+import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintDeletedEvent;
+import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintStatusUpdatedEvent;
+import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintUpdatedEvent;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 import com.denunciayabackend.complaintCreation.domain.services.ComplaintCommandService;
 import com.denunciayabackend.complaintCreation.domain.services.EvidenceService;
 import com.denunciayabackend.complaintCreation.infrastructure.persistence.jpa.repositories.ComplaintRepository;
 import com.denunciayabackend.complaintCreation.interfaces.ComplaintEventPublisher;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
+import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
@@ -171,6 +181,127 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         complaint.assignTo(assignedTo, responsibleId);
         complaintRepository.save(complaint);
+    }
+
+    @Override
+    public Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand command) {
+        Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
+                .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
+
+        var timeline = complaint.getTimeline();
+        var itemOpt = timeline.stream().filter(t -> {
+            if (t.getId() == null || command.timelineItemId() == null) return false;
+            return t.getId().equals(command.timelineItemId());
+        }).findFirst();
+        if (itemOpt.isEmpty()) throw new com.denunciayabackend.complaintCreation.domain.exceptions.TimelineItemNotFoundException(command.timelineItemId());
+
+        var item = itemOpt.get();
+        if (command.completed() != null) item.setCompleted(command.completed());
+        if (command.current() != null) item.setCurrent(command.current());
+        if (command.waitingDecision() != null) item.setWaitingDecision(command.waitingDecision());
+        if (command.status() != null) item.setStatus(command.status());
+        if (command.updateMessage() != null) item.setUpdateMessage(command.updateMessage());
+
+        Complaint updated = complaintRepository.save(complaint);
+        return updated;
+    }
+
+    @Override
+    public Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.AdvanceTimelineCommand command) {
+        Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
+                .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
+
+        var timeline = complaint.getTimeline();
+        int currentIndex = -1;
+        for (int i = 0; i < timeline.size(); i++) if (timeline.get(i).isCurrent()) { currentIndex = i; break; }
+
+        if (currentIndex == -1 || currentIndex >= timeline.size() - 1) return complaint;
+
+        // current -> completed and unset
+        timeline.get(currentIndex).setCompleted(true);
+        timeline.get(currentIndex).setCurrent(false);
+
+        // next becomes current
+        var next = timeline.get(currentIndex + 1);
+        next.setCurrent(true);
+        if (!next.isWaitingDecision()) next.setCompleted(true);
+        next.setDate(java.time.LocalDateTime.now());
+
+        // Update complaint status from timeline
+        complaint.setUpdateMessage(next.getUpdateMessage());
+        complaintRepository.save(complaint);
+        return complaint;
+    }
+
+    @Override
+    public Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.AcceptDecisionCommand command) {
+        Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
+                .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
+
+        var timeline = complaint.getTimeline();
+        int currentIndex = -1;
+        int decisionIndex = -1;
+        for (int i = 0; i < timeline.size(); i++) {
+            if (timeline.get(i).isCurrent()) currentIndex = i;
+            if (timeline.get(i).isWaitingDecision()) decisionIndex = i;
+        }
+
+        if (currentIndex == -1 || decisionIndex == -1 || decisionIndex >= timeline.size() - 1) return complaint;
+
+        timeline.get(currentIndex).setCompleted(true);
+        timeline.get(currentIndex).setCurrent(false);
+
+        var decision = timeline.get(decisionIndex);
+        decision.setCompleted(true);
+        decision.setCurrent(false);
+        decision.setStatus("Accepted");
+        decision.setWaitingDecision(false);
+        decision.setDate(java.time.LocalDateTime.now());
+
+        var next = timeline.get(decisionIndex + 1);
+        next.setCurrent(true);
+        next.setCompleted(true);
+        next.setDate(java.time.LocalDateTime.now());
+
+        complaint.setUpdateMessage("Complaint accepted");
+
+        complaintRepository.save(complaint);
+        return complaint;
+    }
+
+    @Override
+    public Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.RejectDecisionCommand command) {
+        Complaint complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
+                .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
+
+        var timeline = complaint.getTimeline();
+        int currentIndex = -1;
+        int decisionIndex = -1;
+        for (int i = 0; i < timeline.size(); i++) {
+            if (timeline.get(i).isCurrent()) currentIndex = i;
+            if (timeline.get(i).isWaitingDecision()) decisionIndex = i;
+        }
+
+        if (currentIndex == -1 || decisionIndex == -1 || decisionIndex >= timeline.size() - 1) return complaint;
+
+        timeline.get(currentIndex).setCompleted(true);
+        timeline.get(currentIndex).setCurrent(false);
+
+        var decision = timeline.get(decisionIndex);
+        decision.setCompleted(true);
+        decision.setCurrent(true);
+        decision.setStatus("Rejected");
+        decision.setWaitingDecision(false);
+        decision.setDate(java.time.LocalDateTime.now());
+
+        var next = timeline.get(decisionIndex + 1);
+        next.setCompleted(false);
+        next.setCurrent(false);
+
+        complaint.setUpdateMessage("Complaint rejected");
+
+        complaintRepository.save(complaint);
+        return complaint;
     }
 
     private void validateCreateCommand(CreateComplaintCommand command) {
