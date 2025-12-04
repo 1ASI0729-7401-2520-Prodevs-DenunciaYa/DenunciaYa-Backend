@@ -1,7 +1,7 @@
 package com.denunciayabackend.community.domain.model.events;
 
-import org.springframework.context.ApplicationEvent;
 import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class CommentCreatedEvent extends ApplicationEvent {

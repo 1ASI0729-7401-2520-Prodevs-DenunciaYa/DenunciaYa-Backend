@@ -17,16 +17,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
 
-import java.util.List;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -89,13 +90,13 @@ public class PostsController {
                 LOGGER.warn("Invalid createPost request: missing content - resource={}", resource);
                 return ResponseEntity.badRequest().body("content must not be null or blank");
             }
-            var command = CreatePostCommandFromResourceAssembler.toCommandFromResource(resource);
-            var postId = postCommandService.handle(command);
-            var post = postQueryService.handle(new GetPostByIdQuery(postId));
+             var command = CreatePostCommandFromResourceAssembler.toCommandFromResource(resource);
+             var postId = postCommandService.handle(command);
+             var post = postQueryService.handle(new GetPostByIdQuery(postId));
 
-            if (post.isEmpty()) return ResponseEntity.badRequest().body("Could not create post");
+             if (post.isEmpty()) return ResponseEntity.badRequest().body("Could not create post");
 
-            var postResource = PostResourceFromEntityAssembler.toResourceFromEntity(post.get());
+             var postResource = PostResourceFromEntityAssembler.toResourceFromEntity(post.get());
             return new ResponseEntity<>(postResource, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Invalid input for createPost: {}", e.getMessage());
@@ -112,79 +113,67 @@ public class PostsController {
             @ApiResponse(responseCode = "201", description = "Post created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPostMultipart(
-            @RequestPart(value = "post", required = false) String postJson,
-            @RequestPart(value = "content", required = false) String contentPart,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+            @RequestPart("post") String postJson,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        CreatePostResource resource;
         try {
-            CreatePostResource resource = null;
-            if (postJson != null && !postJson.isBlank()) {
-                resource = objectMapper.readValue(postJson, CreatePostResource.class);
-                LOGGER.debug("Parsed post part: {}", resource);
-            } else {
-                LOGGER.debug("No 'post' JSON part provided; will try fallback parts");
-            }
+            resource = objectMapper.readValue(postJson, CreatePostResource.class);
+        } catch (Exception e) {
+            LOGGER.warn("Invalid post JSON in multipart request: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid post JSON: " + e.getMessage());
+        }
 
-            // Fallback: if JSON part missing or content missing, use 'content' part
-            var userId = (resource != null) ? resource.userId() : null;
-            var author = (resource != null) ? resource.author() : null;
-            var content = (resource != null) ? resource.content() : null;
-            var imageUrlFromResource = (resource != null) ? resource.imageUrl() : null;
+        try {
 
-            if ((content == null || content.isBlank()) && contentPart != null && !contentPart.isBlank()) {
-                content = contentPart;
-                LOGGER.debug("Using content from 'content' form part: {}", (content.length() > 100 ? content.substring(0, 100) + "..." : content));
-            }
-
-            // If still no content, return 400
-            if (content == null || content.isBlank()) {
-                LOGGER.warn("Invalid createPostMultipart request: missing content - postJson={} contentPart={}", postJson, contentPart);
+            // 1. Validar contenido mínimo
+            if (resource.content() == null || resource.content().isBlank()) {
                 return ResponseEntity.badRequest().body("content must not be null or blank");
             }
 
-            // Compose resource (imageUrl may be set later)
-            resource = new CreatePostResource(
-                    (userId != null ? userId : ""),
-                    (author != null ? author : ""),
-                    content,
-                    imageUrlFromResource
-            );
+            String imageUrl = null;
 
+            // 2. Si viene imagen → Guardarla
             if (image != null && !image.isEmpty()) {
-                var uploadsDir = Paths.get("uploads");
-                Files.createDirectories(uploadsDir);
+                Path uploadDir = Paths.get("uploads");
+                Files.createDirectories(uploadDir);
 
-                var originalName = image.getOriginalFilename();
-                var safeOriginal = (originalName == null || originalName.isBlank()) ? "file" : Paths.get(originalName).getFileName().toString();
-                var filename = System.currentTimeMillis() + "_" + safeOriginal;
-                var target = uploadsDir.resolve(filename);
+                String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+                Path filePath = uploadDir.resolve(fileName);
 
-                try (var is = image.getInputStream()) {
-                    Files.copy(is, target, StandardCopyOption.REPLACE_EXISTING);
-                }
+                Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                // Set imageUrl to a path that can be served by your static resource mapping or used as reference
-                var imageUrl = "/uploads/" + filename;
-                resource = new CreatePostResource(resource.userId(), resource.author(), resource.content(), imageUrl);
+                imageUrl = "/uploads/" + fileName;
             }
 
-            var command = CreatePostCommandFromResourceAssembler.toCommandFromResource(resource);
+            // 3. Construir resource definitivo (incluye imagen si existe)
+            CreatePostResource finalResource = new CreatePostResource(
+                    resource.userId(),
+                    resource.author(),
+                    resource.content(),
+                    imageUrl
+            );
+
+            // 4. Enviar al servicio de aplicación (usar ensamblador existente y contrato actual)
+            var command = CreatePostCommandFromResourceAssembler.toCommandFromResource(finalResource);
             var postId = postCommandService.handle(command);
             var post = postQueryService.handle(new GetPostByIdQuery(postId));
 
             if (post.isEmpty()) return ResponseEntity.badRequest().body("Could not create post");
 
-            var postResource = PostResourceFromEntityAssembler.toResourceFromEntity(post.get());
-            return new ResponseEntity<>(postResource, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn("Invalid input for createPostMultipart: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            LOGGER.error("Error creating post multipart: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating post");
+            // 5. Retornar entidad creada
+            var response = PostResourceFromEntityAssembler.toResourceFromEntity(post.get());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload image: " + e.getMessage());
         }
     }
+
 
     @Operation(summary = "Delete post", description = "Delete an existing post by ID")
     @ApiResponses(value = {

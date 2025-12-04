@@ -1,6 +1,5 @@
 package com.denunciayabackend.community.interfaces.rest;
 
-import com.denunciayabackend.community.domain.model.commands.CreateCommentCommand;
 import com.denunciayabackend.community.domain.model.queries.GetCommentsByPostIdQuery;
 import com.denunciayabackend.community.domain.services.CommentCommandService;
 import com.denunciayabackend.community.domain.services.CommentQueryService;

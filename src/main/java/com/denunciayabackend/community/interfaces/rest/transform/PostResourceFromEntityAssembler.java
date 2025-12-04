@@ -1,7 +1,6 @@
 package com.denunciayabackend.community.interfaces.rest.transform;
 
 import com.denunciayabackend.community.domain.model.aggregates.Post;
-import com.denunciayabackend.community.interfaces.rest.resources.CommentResource;
 import com.denunciayabackend.community.interfaces.rest.resources.PostResource;
 
 import java.util.stream.Collectors;
