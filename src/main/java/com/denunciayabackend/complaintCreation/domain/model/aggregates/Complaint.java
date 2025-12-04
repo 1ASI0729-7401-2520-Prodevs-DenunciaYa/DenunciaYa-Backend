@@ -152,6 +152,8 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     public void setStatus(ComplaintStatus status) {
         this.status = status;
     }
+
+
     public void updateComplaint(UpdateComplaintCommand command) {
         // Solo actualizar si el valor no es null o vacío
         if (command.category() != null && !command.category().isEmpty()) {
@@ -187,7 +189,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         if (command.responsibleId() != null) {
             this.responsibleId = command.responsibleId();
         }
-
+        this.status= command.status();
         // Ya no agregamos un nuevo item de timeline aquí (no "Complaint updated").
     }
 

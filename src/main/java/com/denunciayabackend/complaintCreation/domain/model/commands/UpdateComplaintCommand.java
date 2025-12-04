@@ -1,6 +1,7 @@
 package com.denunciayabackend.complaintCreation.domain.model.commands;
 
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
+import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ public record UpdateComplaintCommand(
         String referenceInfo,
         String description,
         ComplaintPriority priority,
+        ComplaintStatus status,
         String updateMessage,
         String assignedTo,
         String responsibleId
