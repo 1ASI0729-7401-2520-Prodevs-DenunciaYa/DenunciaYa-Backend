@@ -303,4 +303,35 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
             throw new InvalidComplaintStatusException("Cannot change status from REJECTED to another status");
         }
     }
+
+    @Override
+    public Complaint handle(UpdateTimelineItemStatusCommand command) {
+        var complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
+                .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
+
+        // Encontrar el timeline item específico
+        var timelineItem = complaint.getTimeline().stream()
+                .filter(item -> item.getId().equals(command.timelineItemId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Timeline item not found with id: " + command.timelineItemId()));
+
+        // Actualizar el estado del timeline item
+        if (command.completed() != null) {
+            timelineItem.setCompleted(command.completed());
+        }
+        if (command.current() != null) {
+            timelineItem.setCurrent(command.current());
+        }
+        if (command.waitingDecision() != null) {
+            timelineItem.setWaitingDecision(command.waitingDecision());
+        }
+        if (command.updateMessage() != null) {
+            timelineItem.setUpdateMessage(command.updateMessage());
+        }
+
+        // Actualizar el status del complaint basado en el timeline
+        complaint.updateStatusFromTimeline();
+
+        return complaintRepository.save(complaint);
+    }
 }

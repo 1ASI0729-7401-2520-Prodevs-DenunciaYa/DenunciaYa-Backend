@@ -66,18 +66,34 @@ public class TimelineItem extends AuditableModel {
         this.completed = true;
         this.current = false;
         this.waitingDecision = false;
+        this.updateMessage = updateMessage != null ? updateMessage : this.updateMessage;
+        this.date = LocalDateTime.now();
     }
 
     public void markAsCurrent() {
         this.current = true;
         this.completed = false;
         this.waitingDecision = false;
+        this.updateMessage = updateMessage != null ? updateMessage : this.updateMessage;
+        this.date = LocalDateTime.now();
     }
-
+    public void markAsWaitingDecision(String updateMessage) {
+        this.waitingDecision = true;
+        this.current = true;
+        this.completed = false;
+        this.updateMessage = updateMessage != null ? updateMessage : this.updateMessage;
+        this.date = LocalDateTime.now();
+    }
     public void clearStates() {
         this.completed = false;
         this.current = false;
         this.waitingDecision = false;
+    }
+    public String getStateDescription() {
+        if (this.completed) return "Completed";
+        if (this.current) return "Current";
+        if (this.waitingDecision) return "Waiting Decision";
+        return "Pending";
     }
 
     public boolean isCompleted() {

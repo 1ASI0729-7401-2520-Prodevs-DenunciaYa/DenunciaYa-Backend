@@ -117,41 +117,31 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         t1.setUpdateMessage("Complaint successfully registered in the system");
         this.timeline.add(t1);
 
-        // 2) Under review (not current, not completed)
-        TimelineItem t2 = new TimelineItem(this, "Under review", now, false, true, false);
-        t2.setUpdateMessage("Your complaint is currently being processed by our team.");
-        this.timeline.add(t2);
 
         // 3) Awaiting response (not current, not completed)
-        TimelineItem t3 = new TimelineItem(this, "Awaiting response", now, false, true, false);
-        t3.setUpdateMessage("Your complaint is being processed, you will have a response soon.");
-        this.timeline.add(t3);
+        TimelineItem t2 = new TimelineItem(this, "Awaiting response", now, false, true, false);
+        t2.setUpdateMessage("Your complaint is being processed, you will have a response soon.");
+        this.timeline.add(t2);
 
-        // 4) Decision pending (not current, not completed, waitingDecision=true)
-        TimelineItem t4 = new TimelineItem(this, "Decision pending", now, false, true, true);
-        t4.setUpdateMessage("Your case is in the final evaluation process.");
-        this.timeline.add(t4);
 
         // 5) Rejected (not current, not completed)
-        TimelineItem t5 = new TimelineItem(this, "Rejected", now, false, true, false);
-        t5.setUpdateMessage("We apologize for the inconvenience, but your complaint will be rejected due to lack of evidence.");
-        this.timeline.add(t5);
+        TimelineItem t3 = new TimelineItem(this, "Rejected", now, false, true, false);
+        t3.setUpdateMessage("We apologize for the inconvenience, but your complaint will be rejected due to lack of evidence.");
+        this.timeline.add(t3);
 
         // 6) Accepted (not current, not completed)
-        TimelineItem t6 = new TimelineItem(this, "Accepted", now, false, true, false);
-        t6.setUpdateMessage("Your complaint has been accepted and is being processed.");
-        this.timeline.add(t6);
+        TimelineItem t4 = new TimelineItem(this, "Accepted", now, false, true, false);
+        t4.setUpdateMessage("Your complaint has been accepted and is being processed.");
+        this.timeline.add(t4);
 
         // 7) Completed (not current, not completed)
-        TimelineItem t7 = new TimelineItem(this, "Completed", now, false, true, false);
-        t7.setUpdateMessage("Your complaint has been completed. Thank you for your support. The residents of your city appreciate such a noble act.");
-        this.timeline.add(t7);
+        TimelineItem t5 = new TimelineItem(this, "Completed", now, false, true, false);
+        t5.setUpdateMessage("Your complaint has been completed. Thank you for your support. The residents of your city appreciate such a noble act.");
+        this.timeline.add(t5    );
 
 
     }
-    public void setStatus(ComplaintStatus status) {
-        this.status = status;
-    }
+
 
 
     public void updateComplaint(UpdateComplaintCommand command) {
@@ -181,23 +171,20 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
             this.priority = command.priority();
         }
 
-
         this.updateMessage = command.updateMessage();
-
         this.assignedTo = command.assignedTo();
 
         if (command.responsibleId() != null) {
             this.responsibleId = command.responsibleId();
         }
-        this.status= command.status();
-        // Ya no agregamos un nuevo item de timeline aquí (no "Complaint updated").
+
+        // Si se proporciona un nuevo status, actualizarlo y el timeline
+        if (command.status() != null) {
+            this.status = command.status();
+            updateTimelineFromStatus(command.status());
+        }
     }
 
-    public void updateStatus(ComplaintStatus newStatus, String updateMessage) {
-        this.status = newStatus;
-        this.updateMessage = updateMessage;
-        // No se agrega nuevo TimelineItem, el avance se gestiona con los 5 pasos fijos.
-    }
 
     public void assignTo(String assignedTo, String responsibleId) {
         this.assignedTo = assignedTo;
@@ -436,6 +423,183 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                     break;
                 default:
                     this.status = ComplaintStatus.PENDING;
+            }
+        }
+    }
+
+    public void updateTimelineFromStatus() {
+        updateTimelineFromStatus(this.status);
+    }
+
+    public void updateTimelineFromStatus(ComplaintStatus newStatus) {
+        if (this.timeline == null || this.timeline.isEmpty()) {
+            return;
+        }
+
+        // Primero, resetear todos los items del timeline
+        for (TimelineItem item : this.timeline) {
+            item.setCompleted(false);
+            item.setCurrent(false);
+            item.setWaitingDecision(false);
+        }
+
+        // Luego, marcar el item correspondiente según el status
+        switch (newStatus) {
+            case PENDING:
+                // Para PENDING, marcar "Complaint registered" o "Under review" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Complaint registered".equals(item.getStatus()) ||
+                            "Under review".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is in pending status");
+                        break;
+                    }
+                }
+                break;
+
+            case AWAITING_RESPONSE:
+                // Para AWAITING_RESPONSE, marcar "Awaiting response" o "Decision pending"
+                for (TimelineItem item : this.timeline) {
+                    if ("Complaint registered".equals(item.getStatus()) ||
+                            "Under review".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is in pending status");
+                    }
+
+
+                    if ("Awaiting response".equals(item.getStatus()) ||
+                            "Decision pending".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setWaitingDecision("Decision pending".equals(item.getStatus()));
+                        item.setUpdateMessage("Awaiting response from authorities");
+                        break;
+                    }
+                }
+                break;
+
+            case IN_PROCESS:
+                // Para IN_PROCESS, marcar "Accepted" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Accepted".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is in process");
+                        break;
+                    }
+                }
+                break;
+
+            case COMPLETED:
+                // Para COMPLETED, marcar "Completed" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Completed".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint has been completed");
+                        break;
+                    }
+                }
+                break;
+
+            case REJECTED:
+                // Para REJECTED, marcar "Rejected" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Rejected".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint has been rejected");
+                        break;
+                    }
+                }
+                break;
+
+            case ACCEPTED:
+                // Para ACCEPTED, marcar "Accepted" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Accepted".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint has been accepted");
+                        break;
+                    }
+                    if ("Complaint registered".equals(item.getStatus()) ||
+                            "Under review".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is in pending status");
+                        break;
+                    }
+                        if ("Complaint registered".equals(item.getStatus()) ||
+                                "Under review".equals(item.getStatus())) {
+                            item.setCompleted(true);
+                            item.setCurrent(false);
+                            item.setUpdateMessage("Complaint is in pending status");
+                        }
+
+
+                        if ("Awaiting response".equals(item.getStatus()) ||
+                                "Decision pending".equals(item.getStatus())) {
+                            item.setCompleted(true);
+                            item.setCurrent(false);
+                            item.setWaitingDecision("Decision pending".equals(item.getStatus()));
+                            item.setUpdateMessage("Awaiting response from authorities");
+                        }
+                }
+                break;
+
+            case UNDER_REVIEW:
+                // Para UNDER_REVIEW, marcar "Under review" como completado y actual
+                for (TimelineItem item : this.timeline) {
+                    if ("Under review".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is under review");
+                        break;
+                    }
+
+                    if ("Complaint registered".equals(item.getStatus()) ||
+                            "Under review".equals(item.getStatus())) {
+                        item.setCompleted(true);
+                        item.setCurrent(false);
+                        item.setUpdateMessage("Complaint is in pending status");
+                        break;
+                    }
+                }
+                break;
+        }
+
+        // Actualizar la fecha del item actual
+        for (TimelineItem item : this.timeline) {
+            if (item.isCurrent()) {
+                item.setDate(java.time.LocalDateTime.now());
+            }
+        }
+    }
+
+    // También modifica el método setStatus para llamar automáticamente al timeline:
+    public void setStatus(ComplaintStatus status) {
+        this.status = status;
+        // Actualizar timeline automáticamente cuando cambia el status
+        updateTimelineFromStatus(status);
+    }
+
+    // Y modifica updateStatus para también actualizar el timeline:
+    public void updateStatus(ComplaintStatus newStatus, String updateMessage) {
+        this.status = newStatus;
+        this.updateMessage = updateMessage;
+        // Actualizar timeline automáticamente
+        updateTimelineFromStatus(newStatus);
+
+        // También actualizar el mensaje en el timeline item actual
+        if (this.timeline != null) {
+            for (TimelineItem item : this.timeline) {
+                if (item.isCurrent()) {
+                    item.setUpdateMessage(updateMessage != null ? updateMessage : "");
+                    break;
+                }
             }
         }
     }

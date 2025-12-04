@@ -1,11 +1,7 @@
 package com.denunciayabackend.complaintCreation.domain.services;
 
 import com.denunciayabackend.complaintCreation.domain.model.aggregates.Complaint;
-import com.denunciayabackend.complaintCreation.domain.model.commands.AssignComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.CreateComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.DeleteComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintStatusCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.*;
 
 public interface ComplaintCommandService {
 
@@ -21,4 +17,6 @@ public interface ComplaintCommandService {
     Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.AdvanceTimelineCommand command);
     Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.AcceptDecisionCommand command);
     Complaint handle(com.denunciayabackend.complaintCreation.domain.model.commands.RejectDecisionCommand command);
+    Complaint handle(UpdateTimelineItemStatusCommand command);
+
 }
