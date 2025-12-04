@@ -81,7 +81,8 @@ public class  WebSecurityConfiguration {
                 "/swagger-ui/**",
                 "/swagger-resources/**",
                 "/webjars/**",
-                "/uploads/**"
+                "/uploads/**",
+                "/api/v1/map/complaints"
         };
 
         // --- CORS FIX REAL ---
