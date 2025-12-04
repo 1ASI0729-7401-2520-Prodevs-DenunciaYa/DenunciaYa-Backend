@@ -14,5 +14,7 @@ public record UpdateComplaintCommand(
         String referenceInfo,
         String description,
         ComplaintPriority priority,
-        List<String> evidence
+        String updateMessage,
+        String assignedTo,
+        String responsibleId
 ) { }

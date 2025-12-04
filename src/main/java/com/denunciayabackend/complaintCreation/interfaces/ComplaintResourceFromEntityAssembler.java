@@ -22,11 +22,11 @@ public class ComplaintResourceFromEntityAssembler {
                 complaint.getCity(),
                 complaint.getDistrict(),
                 complaint.getLocation(),
-                complaint.getReferenceInfo(),
+                complaint.getReferenceInfo() != null ? complaint.getReferenceInfo() : "",
                 complaint.getDescription(),
-                complaint.getStatus(),
+                complaint.getStatus(), 
                 complaint.getPriority(),
-                complaint.getEvidence(), // Lista de URLs
+                complaint.getEvidence(),
                 mapEvidencesToResources(complaint.getEvidences()), // Lista de objetos Evidence
                 complaint.getAssignedTo(),
                 complaint.getResponsibleId(),

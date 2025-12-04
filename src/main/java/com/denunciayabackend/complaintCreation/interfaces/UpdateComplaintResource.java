@@ -9,5 +9,8 @@ public record UpdateComplaintResource(
         String referenceInfo,
         String description,
         String priority,
-        java.util.List<String> evidence
+        java.util.List<String> evidence,
+        String updateMessage,
+        String assignedTo,
+        String responsibleId
 ) { }

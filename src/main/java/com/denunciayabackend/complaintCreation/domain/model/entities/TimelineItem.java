@@ -65,11 +65,19 @@ public class TimelineItem extends AuditableModel {
     public void markAsCompleted() {
         this.completed = true;
         this.current = false;
+        this.waitingDecision = false;
     }
 
     public void markAsCurrent() {
         this.current = true;
         this.completed = false;
+        this.waitingDecision = false;
+    }
+
+    public void clearStates() {
+        this.completed = false;
+        this.current = false;
+        this.waitingDecision = false;
     }
 
     public boolean isCompleted() {

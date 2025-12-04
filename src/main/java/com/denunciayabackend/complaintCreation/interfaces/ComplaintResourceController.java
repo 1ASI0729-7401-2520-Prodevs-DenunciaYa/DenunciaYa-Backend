@@ -2,6 +2,7 @@ package com.denunciayabackend.complaintCreation.interfaces;
 
 import java.util.List;
 
+import com.denunciayabackend.complaintCreation.domain.model.commands.AdvanceTimelineCommand;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -181,13 +182,14 @@ public class ComplaintResourceController {
         return ResponseEntity.ok(resource);
     }
 
-        @Operation(summary = "Advance complaint timeline", description = "Advance the complaint to the next timeline item")
-        @PatchMapping("/{complaintId}/timeline/advance")
-        public ResponseEntity<ComplaintResource> advanceTimeline(@PathVariable String complaintId) {
-                var complaint = complaintCommandService.handle(new com.denunciayabackend.complaintCreation.domain.model.commands.AdvanceTimelineCommand(complaintId));
-                var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
-                return ResponseEntity.ok(resource);
-        }
+    @Operation(summary = "Advance complaint timeline", description = "Advance the complaint to the next timeline item")
+    @PatchMapping("/{complaintId}/timeline/advance")
+    public ResponseEntity<ComplaintResource> advanceTimeline(@PathVariable String complaintId) {
+        var command = new AdvanceTimelineCommand(complaintId);
+        var complaint = complaintCommandService.handle(command);
+        var resource = complaintResourceAssembler.toResourceFromEntity(complaint);
+        return ResponseEntity.ok(resource);
+    }
 
         @Operation(summary = "Accept decision on complaint", description = "Accept a decision waiting in the timeline")
         @PatchMapping("/{complaintId}/timeline/accept")

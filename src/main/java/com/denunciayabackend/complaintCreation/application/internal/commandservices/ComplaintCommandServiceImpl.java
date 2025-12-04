@@ -1,33 +1,23 @@
 package com.denunciayabackend.complaintCreation.application.internal.commandservices;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintNotFoundException;
 import com.denunciayabackend.complaintCreation.domain.exceptions.ComplaintValidationException;
 import com.denunciayabackend.complaintCreation.domain.exceptions.InvalidComplaintStatusException;
 import com.denunciayabackend.complaintCreation.domain.model.aggregates.Complaint;
-import com.denunciayabackend.complaintCreation.domain.model.commands.AssignComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.CreateComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.DeleteComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintCommand;
-import com.denunciayabackend.complaintCreation.domain.model.commands.UpdateComplaintStatusCommand;
+import com.denunciayabackend.complaintCreation.domain.model.commands.*;
 import com.denunciayabackend.complaintCreation.domain.model.entities.Evidence;
-import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintAssignedEvent;
-import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintCreatedEvent;
-import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintDeletedEvent;
-import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintStatusUpdatedEvent;
-import com.denunciayabackend.complaintCreation.domain.model.events.ComplaintUpdatedEvent;
+import com.denunciayabackend.complaintCreation.domain.model.events.*;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 import com.denunciayabackend.complaintCreation.domain.services.ComplaintCommandService;
 import com.denunciayabackend.complaintCreation.domain.services.EvidenceService;
 import com.denunciayabackend.complaintCreation.infrastructure.persistence.jpa.repositories.ComplaintRepository;
 import com.denunciayabackend.complaintCreation.interfaces.ComplaintEventPublisher;
-
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @Transactional
@@ -78,21 +68,7 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         complaint.updateComplaint(command);
 
-        // Actualizar evidencias si se proporcionan
-        if (command.evidence() != null) {
-            // Eliminar evidencias existentes
-            evidenceService.deleteEvidencesByComplaintId(command.complaintId());
 
-            // Guardar nuevas evidencias
-            if (!command.evidence().isEmpty()) {
-                List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
-                        command.complaintId(),
-                        command.evidence()
-                );
-                complaint.setEvidences(evidences);
-                complaint.addEvidence(command.evidence());
-            }
-        }
 
         Complaint updatedComplaint = complaintRepository.save(complaint);
         eventPublisher.publishComplaintUpdatedEvent(new ComplaintUpdatedEvent(updatedComplaint));
@@ -189,11 +165,8 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
         var timeline = complaint.getTimeline();
-        var itemOpt = timeline.stream().filter(t -> {
-            if (t.getId() == null || command.timelineItemId() == null) return false;
-            return t.getId().equals(command.timelineItemId());
-        }).findFirst();
-        if (itemOpt.isEmpty()) throw new com.denunciayabackend.complaintCreation.domain.exceptions.TimelineItemNotFoundException(command.timelineItemId());
+        var itemOpt = timeline.stream().filter(t -> t.getId().equals(command.timelineItemId())).findFirst();
+        if (itemOpt.isEmpty()) throw new IllegalArgumentException("Timeline item not found");
 
         var item = itemOpt.get();
         if (command.completed() != null) item.setCompleted(command.completed());
