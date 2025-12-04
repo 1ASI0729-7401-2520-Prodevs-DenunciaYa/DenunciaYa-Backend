@@ -1,6 +1,8 @@
 package com.denunciayabackend.authoritiesPanel.domain.model.entities;
 
-import com.denunciayabackend.authoritiesPanel.domain.exceptions.*;
+import com.denunciayabackend.authoritiesPanel.domain.exceptions.AssignmentValidationException;
+import com.denunciayabackend.authoritiesPanel.domain.exceptions.InvalidAssignmentStatusException;
+import com.denunciayabackend.authoritiesPanel.domain.exceptions.InvalidStatusTransitionException;
 import com.denunciayabackend.authoritiesPanel.domain.model.events.*;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.AssignmentStatus;
 import jakarta.persistence.*;

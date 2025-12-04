@@ -18,7 +18,7 @@ public class ResponsibleResourceFromAssembler {
                 resource.accessLevel(),
                 resource.position(),
                 resource.department(),
-                resource.statusResponsible()
+                resource.status()
 
         );
     }

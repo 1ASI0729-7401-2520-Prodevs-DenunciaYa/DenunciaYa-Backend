@@ -1,4 +1,4 @@
-package com.denunciayabackend.authoritiesPanel.interfaces.rest;
+package com.denunciayabackend.authoritiesPanel.interfaces.rest; /**package com.denunciayabackend.authoritiesPanel.interfaces.rest;
 
 import com.denunciayabackend.authoritiesPanel.domain.services.ComplaintAssignmentService;
 import com.denunciayabackend.authoritiesPanel.interfaces.rest.resources.*;
@@ -129,4 +129,4 @@ public class ComplaintAssignmentController {
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
-}
+}**/

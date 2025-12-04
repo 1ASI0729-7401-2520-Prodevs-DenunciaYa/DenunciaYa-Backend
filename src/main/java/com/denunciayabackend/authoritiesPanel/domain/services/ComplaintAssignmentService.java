@@ -1,6 +1,8 @@
 package com.denunciayabackend.authoritiesPanel.domain.services;
 
-import com.denunciayabackend.authoritiesPanel.domain.model.commands.*;
+import com.denunciayabackend.authoritiesPanel.domain.model.commands.AssignComplaintCommand;
+import com.denunciayabackend.authoritiesPanel.domain.model.commands.ReassignComplaintCommand;
+import com.denunciayabackend.authoritiesPanel.domain.model.commands.UpdateAssignmentStatusCommand;
 import com.denunciayabackend.authoritiesPanel.domain.model.entities.ComplaintAssignment;
 
 import java.util.List;

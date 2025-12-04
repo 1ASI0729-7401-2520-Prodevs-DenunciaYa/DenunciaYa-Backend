@@ -1,6 +1,5 @@
 package com.denunciayabackend.authoritiesPanel.domain.model.events;
 
-import com.denunciayabackend.authoritiesPanel.domain.model.events.*;
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.AssignmentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

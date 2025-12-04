@@ -1,7 +1,6 @@
 package com.denunciayabackend.authoritiesPanel.domain.model.aggregates;
 
 import com.denunciayabackend.authoritiesPanel.domain.model.valueobjects.*;
-import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
 /**
