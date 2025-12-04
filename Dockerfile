@@ -23,6 +23,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 # Build the application
 RUN mvn package -DskipTests
+RUN mvn package -DskipTests -Dencoding=UTF-8
 
 # Step 2: Create a runtime image
 # Copy the Spring Boot JAR file into the container
