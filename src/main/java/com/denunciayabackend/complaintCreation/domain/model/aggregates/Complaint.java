@@ -112,7 +112,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     java.time.LocalDateTime now = java.time.LocalDateTime.now();
 
     // 1) Complaint registered (current, completed)
-    TimelineItem t1 = new TimelineItem(this, "Complaint registered", now, false, false, false);
+    TimelineItem t1 = new TimelineItem(this, "Complaint registered", now, true, true, false);
     t1.setUpdateMessage("Complaint successfully registered in the system");
     this.timeline.add(t1);
 
