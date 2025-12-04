@@ -26,7 +26,6 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public ResponsibleService handle(GetResponsibleByIdQuery query) {
         return responsibleRepository.findById(query.responsibleId())
@@ -60,9 +59,28 @@ public class ResponsibleQueryServiceImpl implements ResponsibleQueryService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ResponsibleService> handle(GetResponsiblesByStatusQuery query) {
+        return responsibleRepository.findAll()
+                .stream()
+                .filter(r -> r.getStatusResponsible().name().equalsIgnoreCase(query.status()))
+                .map(this::toService)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ResponsibleService> handle(GetResponsiblesByAccessLevelQuery query) {
+        return responsibleRepository.findAll()
+                .stream()
+                .filter(r -> r.getAccessLevel().name().equalsIgnoreCase(query.accessLevel()))
+                .map(this::toService)
+                .collect(Collectors.toList());
+    }
+
     private ResponsibleService toService(Responsible responsible) {
         return new ResponsibleService(
                 responsible.getId(),
+                responsible.getResponsibleId(),  // Este método retorna String
                 responsible.getFirstName().getValue(),
                 responsible.getLastName().getValue(),
                 responsible.getFullName(),
