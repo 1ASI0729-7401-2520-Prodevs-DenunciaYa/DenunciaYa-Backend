@@ -17,7 +17,8 @@ public class UpdateComplaintCommandFromResourceAssembler {
                 resource.location(),
                 resource.referenceInfo(),
                 resource.description(),
-                ComplaintPriority.fromJsonValue(resource.priority())
+                ComplaintPriority.fromJsonValue(resource.priority()),
+                resource.evidence()
         );
     }
 }

@@ -20,9 +20,23 @@ public class ComplaintAssignedEvent {
         return complaint.getComplaintId();
     }
 
-    public Complaint getComplaint() { return complaint; }
-    public String getAssignedTo() { return assignedTo; }
-    public String getResponsibleId() { return responsibleId; }
-    public String getEventType() { return eventType; }
-    public Long getTimestamp() { return timestamp; }
+    public Complaint getComplaint() {
+        return complaint;
+    }
+
+    public String getAssignedTo() {
+        return assignedTo;
+    }
+
+    public String getResponsibleId() {
+        return responsibleId;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
 }

@@ -2,6 +2,8 @@ package com.denunciayabackend.complaintCreation.domain.model.commands;
 
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 
+import java.util.List;
+
 public record CreateComplaintCommand(
         String category,
         String department,
@@ -10,5 +12,6 @@ public record CreateComplaintCommand(
         String location,
         String referenceInfo,
         String description,
-        ComplaintPriority priority
+        ComplaintPriority priority,
+        List<String> evidence
 ) { }

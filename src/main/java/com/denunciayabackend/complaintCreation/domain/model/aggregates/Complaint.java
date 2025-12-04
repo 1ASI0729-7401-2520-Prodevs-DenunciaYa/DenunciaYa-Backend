@@ -7,6 +7,8 @@ import com.denunciayabackend.complaintCreation.domain.model.valueobjects.Complai
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintStatus;
 import com.denunciayabackend.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.List;
 
 @Entity(name = "ComplaintCreation")
 @Table(name = "complaints")
+@JsonInclude(JsonInclude.Include.NON_NULL) // Excluir campos nulos en la serialización
 public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
     @Id
@@ -59,7 +62,7 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     @ElementCollection
     @CollectionTable(name = "complaint_evidences", joinColumns = @JoinColumn(name = "complaint_id"))
     @Column(name = "evidence_url")
-    private List<String> evidence = new ArrayList<>();
+    private List<String> evidence;
 
     private String assignedTo;
 
@@ -151,7 +154,8 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.id;
     }
 
-    public String getAssignedTo() {
+    @JsonProperty("assignedTo")
+    public String getAssignedToForJson() {
         return this.assignedTo;
     }
 
@@ -176,14 +180,15 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     }
 
     public List<String> getEvidence() {
-        return this.evidence;
+        return evidence != null ? evidence : List.of(); // Devuelve una lista vacía si es null
     }
 
     public String getLocation() {
         return this.location;
     }
 
-    public String getPriority() {
+    @JsonProperty("priority")
+    public String getPriorityForJson() {
         return this.priority != null ? this.priority.toJsonValue() : null;
     }
 
@@ -191,17 +196,22 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.referenceInfo;
     }
 
-    public String getResponsibleId() {
+    @JsonProperty("responsibleId")
+    public String getResponsibleIdForJson() {
         return this.responsibleId;
     }
+
+    @JsonProperty("status")
     public String getStatusForJson() {
         return this.status != null ? this.status.toJsonValue() : null;
     }
+
     public ComplaintStatus getStatus() {
         return this.status;
     }
 
-    public List<TimelineItem> getTimeline() {
+    @JsonProperty("timeline")
+    public List<TimelineItem> getTimelineForJson() {
         return this.timeline;
     }
 
@@ -209,7 +219,8 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         return this.getUpdatedAt() != null ? this.getUpdatedAt().toString() : this.getCreatedAt().toString();
     }
 
-    public String getUpdateMessage() {
+    @JsonProperty("updateMessage")
+    public String getUpdateMessageForJson() {
         return this.updateMessage;
     }
 
@@ -232,5 +243,52 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     public ComplaintId getComplaintIdObject() {
         return this.complaintId;
     }
+    public void setAssignedTo(String assignedTo) {
+        this.assignedTo = assignedTo;
+    }
+
+    public void setResponsibleId(String responsibleId) {
+        this.responsibleId = responsibleId;
+    }
+
+    public void setPriority(ComplaintPriority priority) {
+        this.priority = priority;
+    }
+
+    public void setEvidence(List<String> evidence) {
+        this.evidence = evidence;
+    }
+    public String getAssignedTo() {
+        return assignedTo;
+    }
+
+    public String getResponsibleId() {
+        return responsibleId;
+    }
+
+    public ComplaintPriority getPriority() {
+        return priority;
+    }
+
+
+    // Getter para updateMessage
+    public String getUpdateMessage() {
+        return updateMessage;
+    }
+
+    // Getter para timeline
+    public List<TimelineItem> getTimeline() {
+        return timeline;
+    }
+
+    // Setters (opcional, si necesitas modificar los valores)
+    public void setUpdateMessage(String updateMessage) {
+        this.updateMessage = updateMessage;
+    }
+
+    public void setTimeline(List<TimelineItem> timeline) {
+        this.timeline = timeline;
+    }
+
 
 }

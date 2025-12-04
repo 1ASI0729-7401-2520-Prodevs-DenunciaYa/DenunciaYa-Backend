@@ -14,7 +14,7 @@ public record ComplaintResource(
         String referenceInfo,
         String description,
         ComplaintStatus status,
-        String priority,
+        com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority priority,
         List<String> evidence,
         String assignedTo,
         String responsibleId,

@@ -1,10 +1,14 @@
 package com.denunciayabackend.complaintCreation.domain.model.valueobjects;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ComplaintPriority {
     STANDARD,
     URGENT,
     CRITICAL;
 
+    @JsonValue
     public String toJsonValue() {
         switch (this) {
             case STANDARD: return "Standard";
@@ -14,6 +18,7 @@ public enum ComplaintPriority {
         }
     }
 
+    @JsonCreator
     public static ComplaintPriority fromJsonValue(String jsonValue) {
         if (jsonValue == null) return null;
 

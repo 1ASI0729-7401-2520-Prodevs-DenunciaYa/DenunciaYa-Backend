@@ -3,6 +3,7 @@ import com.denunciayabackend.complaintCreation.domain.model.commands.CreateCompl
 import com.denunciayabackend.complaintCreation.domain.model.valueobjects.ComplaintPriority;
 import org.springframework.stereotype.Component;
 
+
 @Component
 public class CreateComplaintCommandFromResourceAssembler {
 
@@ -15,8 +16,8 @@ public class CreateComplaintCommandFromResourceAssembler {
                 resource.location(),
                 resource.referenceInfo(),
                 resource.description(),
-                ComplaintPriority.fromJsonValue(resource.priority())
-
+                ComplaintPriority.fromJsonValue(resource.priority()),
+                resource.evidence()
         );
     }
 }
