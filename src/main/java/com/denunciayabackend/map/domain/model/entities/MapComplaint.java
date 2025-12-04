@@ -11,7 +11,7 @@ import org.hibernate.annotations.Immutable;
 @Getter
 @NoArgsConstructor
 @Entity(name = "MapComplaint")
-@Table(name = "complaints")
+@Table(name = "map_complaint")
 @Immutable
 public class MapComplaint {
 
