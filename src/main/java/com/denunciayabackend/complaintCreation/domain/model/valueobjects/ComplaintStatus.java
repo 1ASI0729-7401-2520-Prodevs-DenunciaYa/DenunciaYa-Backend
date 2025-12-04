@@ -8,7 +8,11 @@ public enum ComplaintStatus {
     IN_PROCESS,
     COMPLETED,
     REJECTED,
-    AWAITING_RESPONSE;
+    AWAITING_RESPONSE,
+    ACCEPTED,
+    UNDER_REVIEW;
+
+
 
     @JsonValue
     public String toJsonValue() {
@@ -18,6 +22,8 @@ public enum ComplaintStatus {
             case COMPLETED: return "Completed";
             case REJECTED: return "Rejected";
             case AWAITING_RESPONSE: return "Awaiting Response";
+            case ACCEPTED: return "Accepted";
+            case UNDER_REVIEW: return "Under Review";
             default: return this.name();
         }
     }
@@ -32,6 +38,8 @@ public enum ComplaintStatus {
             case "Completed": return COMPLETED;
             case "Rejected": return REJECTED;
             case "Awaiting Response": return AWAITING_RESPONSE;
+            case "Accepted": return ACCEPTED;
+            case "Under Review": return UNDER_REVIEW;
             default: return valueOf(jsonValue.toUpperCase().replace(" ", "_"));
         }
     }
