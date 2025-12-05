@@ -82,6 +82,7 @@ public class  WebSecurityConfiguration {
                 "/swagger-resources/**",
                 "/webjars/**",
                 "/uploads/**",
+                "/api/v1/posts/**/image",
 
                 "/api/v1/map/complaints",
                 "/api/v1/responsibles",

@@ -1,4 +1,4 @@
-package com.denunciayabackend.community.domain.model.aggregates;
+package community.domain.model.aggregates;
 
 import com.denunciayabackend.community.domain.model.commands.CreatePostCommand;
 import com.denunciayabackend.community.domain.model.entities.Comment;

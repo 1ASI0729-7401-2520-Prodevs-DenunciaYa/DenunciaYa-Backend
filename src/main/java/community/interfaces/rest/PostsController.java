@@ -1,7 +1,6 @@
-package com.denunciayabackend.community.interfaces.rest;
+package community.interfaces.rest;
 
 import com.denunciayabackend.community.domain.model.commands.DeletePostCommand;
-import com.denunciayabackend.community.domain.model.entities.PostImage;
 import com.denunciayabackend.community.domain.model.queries.GetAllPostQuery;
 import com.denunciayabackend.community.domain.model.queries.GetPostByIdQuery;
 import com.denunciayabackend.community.domain.services.PostCommandService;
@@ -12,6 +11,7 @@ import com.denunciayabackend.community.interfaces.rest.resources.CreatePostResou
 import com.denunciayabackend.community.interfaces.rest.resources.PostResource;
 import com.denunciayabackend.community.interfaces.rest.transform.CreatePostCommandFromResourceAssembler;
 import com.denunciayabackend.community.interfaces.rest.transform.PostResourceFromEntityAssembler;
+import com.denunciayabackend.community.domain.model.entities.PostImage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,13 +19,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.util.List;
