@@ -34,7 +34,7 @@ import jakarta.persistence.Table;
 
 @Entity(name = "ComplaintCreation")
 @Table(name = "complaints")
-@JsonInclude(JsonInclude.Include.NON_NULL) // Excluir campos nulos en la serialización
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
     @Id
@@ -145,7 +145,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
 
 
     public void updateComplaint(UpdateComplaintCommand command) {
-        // Solo actualizar si el valor no es null o vacío
         if (command.category() != null && !command.category().isEmpty()) {
             this.category = command.category();
         }
@@ -178,7 +177,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
             this.responsibleId = command.responsibleId();
         }
 
-        // Si se proporciona un nuevo status, actualizarlo y el timeline
         if (command.status() != null) {
             this.status = command.status();
             updateTimelineFromStatus(command.status());
@@ -189,7 +187,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     public void assignTo(String assignedTo, String responsibleId) {
         this.assignedTo = assignedTo;
         this.responsibleId = responsibleId;
-        // No se agrega item extra "Assigned to ..." en el timeline.
     }
 
     public void addEvidence(List<String> evidenceUrls) {
@@ -222,12 +219,10 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     }
     public void updatePriority(ComplaintPriority priority) {
         this.priority = priority;
-        // No se agrega item extra "Priority updated ..." en el timeline.
     }
 
     public void deleteComplaint() {
         this.status = ComplaintStatus.REJECTED;
-        // No se agrega item extra "Complaint deleted" en el timeline.
     }
 
     /**
@@ -235,7 +230,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
      * Used to pre-seed the timeline with fixed statuses.
      */
     private void addTimelineItemNonCurrent(String status, String message) {
-        // Use constructor with explicit flags so item is not current and not completed
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         TimelineItem timelineItem = new TimelineItem(this, status, now, false, false, false);
         timelineItem.setUpdateMessage(message != null ? message : "");
@@ -367,12 +361,12 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
     }
 
 
-    // Getter para updateMessage
+    // Getter
     public String getUpdateMessage() {
         return updateMessage;
     }
 
-    // Getter para timeline
+    // Getter
     public List<TimelineItem> getTimeline() {
         return timeline;
     }
@@ -392,7 +386,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
             return;
         }
 
-        // Buscar el item actual en el timeline
         TimelineItem currentItem = this.timeline.stream()
                 .filter(TimelineItem::isCurrent)
                 .findFirst()
@@ -402,7 +395,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
             String statusText = currentItem.getStatus();
             this.updateMessage = currentItem.getUpdateMessage();
 
-            // Mapear el estado del timeline al estado del complaint
             switch (statusText) {
                 case "Complaint registered":
                 case "Under review":
@@ -436,17 +428,14 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
             return;
         }
 
-        // Primero, resetear todos los items del timeline
         for (TimelineItem item : this.timeline) {
             item.setCompleted(false);
             item.setCurrent(false);
             item.setWaitingDecision(false);
         }
 
-        // Luego, marcar el item correspondiente según el status
         switch (newStatus) {
             case PENDING:
-                // Para PENDING, marcar "Complaint registered" o "Under review" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Complaint registered".equals(item.getStatus()) ||
                             "Under review".equals(item.getStatus())) {
@@ -459,7 +448,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case AWAITING_RESPONSE:
-                // Para AWAITING_RESPONSE, marcar "Awaiting response" o "Decision pending"
                 for (TimelineItem item : this.timeline) {
                     if ("Complaint registered".equals(item.getStatus()) ||
                             "Under review".equals(item.getStatus())) {
@@ -481,7 +469,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case IN_PROCESS:
-                // Para IN_PROCESS, marcar "Accepted" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Accepted".equals(item.getStatus())) {
                         item.setCompleted(true);
@@ -493,7 +480,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case COMPLETED:
-                // Para COMPLETED, marcar "Completed" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Completed".equals(item.getStatus())) {
                         item.setCompleted(true);
@@ -505,7 +491,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case REJECTED:
-                // Para REJECTED, marcar "Rejected" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Rejected".equals(item.getStatus())) {
                         item.setCompleted(true);
@@ -517,7 +502,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case ACCEPTED:
-                // Para ACCEPTED, marcar "Accepted" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Accepted".equals(item.getStatus())) {
                         item.setCompleted(true);
@@ -551,7 +535,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
 
             case UNDER_REVIEW:
-                // Para UNDER_REVIEW, marcar "Under review" como completado y actual
                 for (TimelineItem item : this.timeline) {
                     if ("Under review".equals(item.getStatus())) {
                         item.setCompleted(true);
@@ -571,7 +554,6 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
                 break;
         }
 
-        // Actualizar la fecha del item actual
         for (TimelineItem item : this.timeline) {
             if (item.isCurrent()) {
                 item.setDate(java.time.LocalDateTime.now());
@@ -579,21 +561,16 @@ public class Complaint extends AuditableAbstractAggregateRoot<Complaint> {
         }
     }
 
-    // También modifica el método setStatus para llamar automáticamente al timeline:
     public void setStatus(ComplaintStatus status) {
         this.status = status;
-        // Actualizar timeline automáticamente cuando cambia el status
         updateTimelineFromStatus(status);
     }
 
-    // Y modifica updateStatus para también actualizar el timeline:
     public void updateStatus(ComplaintStatus newStatus, String updateMessage) {
         this.status = newStatus;
         this.updateMessage = updateMessage;
-        // Actualizar timeline automáticamente
         updateTimelineFromStatus(newStatus);
 
-        // También actualizar el mensaje en el timeline item actual
         if (this.timeline != null) {
             for (TimelineItem item : this.timeline) {
                 if (item.isCurrent()) {

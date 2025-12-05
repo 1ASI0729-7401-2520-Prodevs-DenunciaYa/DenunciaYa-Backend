@@ -41,20 +41,20 @@ public class ComplaintResourceController {
     private final ComplaintResourceFromEntityAssembler complaintResourceAssembler;
     private final CreateComplaintCommandFromResourceAssembler createCommandAssembler;
     private final UpdateComplaintCommandFromResourceAssembler updateCommandAssembler;
-    private final ComplaintRepository complaintRepository; // AÑADE ESTO
+    private final ComplaintRepository complaintRepository;
 
     public ComplaintResourceController(ComplaintCommandService complaintCommandService,
                                        ComplaintQueryService complaintQueryService,
                                        ComplaintResourceFromEntityAssembler complaintResourceAssembler,
                                        CreateComplaintCommandFromResourceAssembler createCommandAssembler,
                                        UpdateComplaintCommandFromResourceAssembler updateCommandAssembler,
-                                       ComplaintRepository complaintRepository) { // AÑADE ESTO
+                                       ComplaintRepository complaintRepository) {
         this.complaintCommandService = complaintCommandService;
         this.complaintQueryService = complaintQueryService;
         this.complaintResourceAssembler = complaintResourceAssembler;
         this.createCommandAssembler = createCommandAssembler;
         this.updateCommandAssembler = updateCommandAssembler;
-        this.complaintRepository = complaintRepository; // AÑADE ESTO
+        this.complaintRepository = complaintRepository;
     }
 
     @Operation(summary = "Get all complaints", description = "Returns a list of all complaints in the system")
@@ -253,7 +253,6 @@ public class ComplaintResourceController {
     @PutMapping("/{complaintId}/timeline/{timelineItemId}/accept")
     public ResponseEntity<ComplaintResource> putAcceptTimelineItemById(@PathVariable String complaintId,
                                                                        @PathVariable Long timelineItemId) {
-        // mark the specified timeline item as accepted
         var commandUpdate = new com.denunciayabackend.complaintCreation.domain.model.commands.UpdateTimelineItemCommand(
                 complaintId,
                 timelineItemId,
@@ -337,10 +336,8 @@ public class ComplaintResourceController {
         var complaint = complaintQueryService.findComplaintByComplaintId(complaintId)
                 .orElseThrow(() -> new ComplaintNotFoundException(complaintId));
 
-        // Sincronizar el timeline con el status actual
         complaint.updateTimelineFromStatus();
 
-        // Guardar los cambios
         var savedComplaint = complaintRepository.save(complaint);
 
         var resource = complaintResourceAssembler.toResourceFromEntity(savedComplaint);

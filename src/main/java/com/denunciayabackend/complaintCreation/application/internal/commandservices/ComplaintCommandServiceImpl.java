@@ -41,10 +41,8 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         Complaint complaint = new Complaint(command);
 
-        // Guardar la denuncia primero
         Complaint savedComplaint = complaintRepository.save(complaint);
 
-        // Guardar evidencias si existen
         if (command.evidence() != null && !command.evidence().isEmpty()) {
             List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
                     savedComplaint.getComplaintId(),
@@ -115,10 +113,8 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         System.out.println("Deleting complaint with id: " + command.complaintId() + " and status: " + complaint.getStatus());
 
-        // Eliminar evidencias primero
         evidenceService.deleteEvidencesByComplaintId(command.complaintId());
 
-        // Eliminar la denuncia
         complaintRepository.delete(complaint);
         eventPublisher.publishComplaintDeletedEvent(new ComplaintDeletedEvent(complaint));
     }
@@ -128,13 +124,11 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         Complaint complaint = complaintRepository.findByComplaintIdValue(complaintId)
                 .orElseThrow(() -> new ComplaintNotFoundException(complaintId));
 
-        // Guardar evidencia
         List<Evidence> evidences = evidenceService.saveEvidencesForComplaint(
                 complaintId,
                 Collections.singletonList(evidenceUrl)
         );
 
-        // Actualizar la queja con la nueva evidencia
         complaint.getEvidences().addAll(evidences);
         complaint.addEvidence(Collections.singletonList(evidenceUrl));
         complaintRepository.save(complaint);
@@ -190,17 +184,14 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
 
         if (currentIndex == -1 || currentIndex >= timeline.size() - 1) return complaint;
 
-        // current -> completed and unset
         timeline.get(currentIndex).setCompleted(true);
         timeline.get(currentIndex).setCurrent(false);
 
-        // next becomes current
         var next = timeline.get(currentIndex + 1);
         next.setCurrent(true);
         if (!next.isWaitingDecision()) next.setCompleted(true);
         next.setDate(java.time.LocalDateTime.now());
 
-        // Update complaint status from timeline
         complaint.setUpdateMessage(next.getUpdateMessage());
         complaintRepository.save(complaint);
         return complaint;
@@ -309,13 +300,11 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
         var complaint = complaintRepository.findByComplaintIdValue(command.complaintId())
                 .orElseThrow(() -> new ComplaintNotFoundException(command.complaintId()));
 
-        // Encontrar el timeline item específico
         var timelineItem = complaint.getTimeline().stream()
                 .filter(item -> item.getId().equals(command.timelineItemId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Timeline item not found with id: " + command.timelineItemId()));
 
-        // Actualizar el estado del timeline item
         if (command.completed() != null) {
             timelineItem.setCompleted(command.completed());
         }
@@ -329,7 +318,6 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
             timelineItem.setUpdateMessage(command.updateMessage());
         }
 
-        // Actualizar el status del complaint basado en el timeline
         complaint.updateStatusFromTimeline();
 
         return complaintRepository.save(complaint);

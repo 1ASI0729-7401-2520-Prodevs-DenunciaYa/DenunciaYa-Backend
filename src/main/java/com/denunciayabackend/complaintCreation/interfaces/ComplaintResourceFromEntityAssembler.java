@@ -27,7 +27,7 @@ public class ComplaintResourceFromEntityAssembler {
                 complaint.getStatus(), 
                 complaint.getPriority(),
                 complaint.getEvidence(),
-                mapEvidencesToResources(complaint.getEvidences()), // Lista de objetos Evidence
+                mapEvidencesToResources(complaint.getEvidences()),
                 complaint.getAssignedTo(),
                 complaint.getResponsibleId(),
                 complaint.getUpdateMessage(),
