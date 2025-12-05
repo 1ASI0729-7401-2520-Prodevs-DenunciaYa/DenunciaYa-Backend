@@ -87,7 +87,7 @@ public class  WebSecurityConfiguration {
         // --- CORS FIX REAL ---
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
+            cors.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000","http://denuncia-ya-frontend.web.app/","http://denuncia-ya-frontend.firebaseapp.com/"));
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             cors.setAllowedHeaders(List.of("*"));
             cors.setExposedHeaders(List.of("Authorization"));
