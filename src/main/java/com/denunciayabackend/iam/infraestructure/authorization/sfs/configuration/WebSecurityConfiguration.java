@@ -58,6 +58,7 @@ public class  WebSecurityConfiguration {
 
 
     @Bean
+    @SuppressWarnings("deprecation")
     public DaoAuthenticationProvider authenticationProvider() {
         var provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
@@ -82,6 +83,8 @@ public class  WebSecurityConfiguration {
                 "/swagger-resources/**",
                 "/webjars/**",
                 "/uploads/**",
+                // permitir acceso a la imagen de posts tanto para rutas con un solo segmento como con varios niveles
+                "/api/v1/posts/*/image",
                 "/api/v1/posts/**/image",
 
                 "/api/v1/map/complaints",
