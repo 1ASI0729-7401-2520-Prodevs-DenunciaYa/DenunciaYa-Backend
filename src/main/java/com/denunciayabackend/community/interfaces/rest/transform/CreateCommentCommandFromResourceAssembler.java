@@ -6,11 +6,20 @@ import com.denunciayabackend.community.interfaces.rest.resources.CreateCommentRe
 public class CreateCommentCommandFromResourceAssembler {
 
     public static CreateCommentCommand toCommandFromResource(CreateCommentResource resource, Long postId) {
-        Long userId = null;
+        if (resource == null) {
+            throw new IllegalArgumentException("CreateCommentResource is required");
+        }
+
+        String rawUserId = resource.userId();
+        if (rawUserId == null || rawUserId.isBlank()) {
+            throw new IllegalArgumentException("userId is required");
+        }
+
+        Long userId;
         try {
-            userId = Long.parseLong(resource.userId());
+            userId = Long.valueOf(rawUserId.trim());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid userId format. Must be a number.");
+            throw new IllegalArgumentException("Invalid userId format. Must be a number.", e);
         }
 
         return new CreateCommentCommand(

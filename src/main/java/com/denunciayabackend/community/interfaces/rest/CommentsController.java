@@ -24,6 +24,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Tag(name = "Comments", description = "Endpoints for managing comments under posts")
 public class CommentsController {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CommentsController.class);
+
     private final CommentCommandService commentCommandService;
     private final CommentQueryService commentQueryService;
 
@@ -33,11 +35,6 @@ public class CommentsController {
         this.commentQueryService = commentQueryService;
     }
 
-    @Operation(summary = "Get comments by post", description = "Retrieve all comments for a given post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Comments retrieved successfully"),
-            @ApiResponse(responseCode = "404", description = "No comments found for this post")
-    })
     @GetMapping
     public ResponseEntity<List<CommentResource>> getCommentsByPost(@PathVariable Long postId) {
         var query = new GetCommentsByPostIdQuery(postId);
@@ -52,21 +49,31 @@ public class CommentsController {
         return ResponseEntity.ok(resources);
     }
 
-    @Operation(summary = "Create a new comment", description = "Add a new comment to an existing post")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Comment created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data")
-    })
     @PostMapping
     public ResponseEntity<CommentResource> createComment(@PathVariable Long postId,
                                                          @RequestBody CreateCommentResource resource) {
-        var command = CreateCommentCommandFromResourceAssembler.toCommandFromResource(resource, postId);
-        var commentId = commentCommandService.handle(command);
-        var createdComment = commentQueryService.findById(commentId);
+        try {
+            // Validaciones mínimas en el controller
+            if (resource.author() == null || resource.author().isBlank()
+                    || resource.content() == null || resource.content().isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
 
-        if (createdComment.isEmpty()) return ResponseEntity.badRequest().build();
+            var command = CreateCommentCommandFromResourceAssembler.toCommandFromResource(resource, postId);
+            var commentId = commentCommandService.handle(command);
+            var createdComment = commentQueryService.findById(commentId);
 
-        var resourceResponse = CommentResourceFromEntityAssembler.toResourceFromEntity(createdComment.get());
-        return new ResponseEntity<>(resourceResponse, HttpStatus.CREATED);
+            if (createdComment.isEmpty()) return ResponseEntity.badRequest().build();
+
+            var resourceResponse = CommentResourceFromEntityAssembler.toResourceFromEntity(createdComment.get());
+            return new ResponseEntity<>(resourceResponse, HttpStatus.CREATED);
+        } catch (IllegalArgumentException ex) {
+            // Entrada inválida => 400 (ej: userId malformado)
+            return ResponseEntity.badRequest().build();
+        } catch (Exception ex) {
+            // Registrar para depuración y devolver 500 genérico
+            logger.error("Error creating comment for post " + postId, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
