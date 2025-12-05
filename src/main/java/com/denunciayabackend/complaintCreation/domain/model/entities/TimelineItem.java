@@ -2,6 +2,7 @@ package com.denunciayabackend.complaintCreation.domain.model.entities;
 
 import com.denunciayabackend.complaintCreation.domain.model.aggregates.Complaint;
 import com.denunciayabackend.shared.domain.model.entities.AuditableModel;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
