@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,6 +42,9 @@ public class PostsController {
     private final PostCommandService postCommandService;
     private final PostQueryService postQueryService;
     private final ObjectMapper objectMapper;
+
+    @Value("${uploads.dir:uploads}")
+    private String uploadsDirProperty;
 
     public PostsController(PostCommandService postCommandService, PostQueryService postQueryService, ObjectMapper objectMapper) {
         this.postCommandService = postCommandService;
@@ -73,9 +77,12 @@ public class PostsController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostResource> getPostById(@PathVariable Long postId) {
         var post = postQueryService.handle(new GetPostByIdQuery(postId));
-        return post.map(value ->
-                ResponseEntity.ok(PostResourceFromEntityAssembler.toResourceFromEntity(value))
-        ).orElseGet(() -> ResponseEntity.notFound().build());
+        if (post.isPresent()) {
+            var resource = PostResourceFromEntityAssembler.toResourceFromEntity(post.get());
+            return ResponseEntity.ok(resource);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Operation(summary = "Create a new post", description = "Create a new post in the community")
@@ -138,13 +145,16 @@ public class PostsController {
 
             // 2. Si viene imagen → Guardarla
             if (image != null && !image.isEmpty()) {
-                Path uploadDir = Paths.get("uploads");
+                Path uploadDir = Paths.get(uploadsDirProperty);
                 Files.createDirectories(uploadDir);
 
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
                 Path filePath = uploadDir.resolve(fileName);
 
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Log absolute path and imageUrl for debugging
+                LOGGER.info("Saved uploaded file to {} (imageUrl=/uploads/{}). uploads.dir={}", filePath.toAbsolutePath(), fileName, uploadsDirProperty);
 
                 imageUrl = "/uploads/" + fileName;
             }
