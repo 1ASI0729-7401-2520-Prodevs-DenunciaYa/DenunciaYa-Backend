@@ -83,9 +83,8 @@ public class  WebSecurityConfiguration {
                 "/swagger-resources/**",
                 "/webjars/**",
                 "/uploads/**",
-                // permitir acceso a la imagen de posts tanto para rutas con un solo segmento como con varios niveles
                 "/api/v1/posts/*/image",
-                "/api/v1/posts/**/image",
+
 
                 "/api/v1/map/complaints",
                 "/api/v1/responsibles",
